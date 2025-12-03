@@ -19,24 +19,24 @@ st.markdown("""
         color: #111;
     }
 
-    /* 메인 컨테이너 */
     .main-wrap {
         max-width: 800px; margin: 0 auto; background: white;
-        padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     }
 
     /* 헤더 */
     .header-box { border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; margin-bottom: 25px; }
-    .name-txt { font-size: 24px; font-weight: 900; color: #212529; }
+    .name-txt { font-size: 26px; font-weight: 900; color: #212529; }
     .ganji-badge { background: #e9ecef; padding: 4px 10px; border-radius: 12px; font-size: 14px; font-weight: bold; color: #495057; margin-left: 8px; vertical-align: middle; }
+    .gyeok-badge { background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-size: 14px; font-weight: bold; margin-left: 5px; vertical-align: middle; border: 1px solid #bbdefb;}
+    
     .info-row { font-size: 14px; color: #868e96; margin-top: 6px; }
     .solar-row { font-size: 14px; color: #ff6b6b; font-weight: bold; margin-top: 2px; }
 
-    /* [핵심] 원국표 테이블 */
+    /* 원국표 */
     .saju-tbl { width: 100%; border-collapse: separate; border-spacing: 2px; text-align: center; table-layout: fixed; margin-bottom:10px;}
     .saju-tbl th { font-size: 12px; color: #adb5bd; font-weight: normal; padding-bottom: 5px; }
     
-    /* 한자 박스 */
     .char-cell {
         border: 1px solid #e9ecef; border-radius: 10px; height: 85px;
         display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -45,11 +45,9 @@ st.markdown("""
     .char-font { font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 900; line-height: 1; margin-bottom:4px; }
     .ten-small { font-size: 11px; color: #868e96; font-weight: bold; }
 
-    /* 상세 정보 행 */
     .row-title { font-size: 12px; font-weight: bold; color: #adb5bd; text-align: left; padding-left: 5px; width: 45px; }
     .row-data { font-size: 12px; font-weight: bold; color: #495057; border-top: 1px solid #f8f9fa; padding: 8px 0; }
     
-    /* 오행 색상 */
     .c-wood { color: #39d353; } .c-fire { color: #ff6b6b; } 
     .c-earth { color: #ffc107; } .c-metal { color: #adb5bd; } .c-water { color: #58a6ff; }
 
@@ -59,11 +57,11 @@ st.markdown("""
     .ft-title { font-size: 12px; font-weight: 800; color: #343a40; display: block; }
     .ft-desc { font-size: 10px; color: #aaa; margin-top:2px; display:block;}
 
-    /* 섹션 제목 */
+    /* 섹션 */
     .sec-title { font-size: 17px; font-weight: 800; margin: 35px 0 15px 0; display: flex; align-items: center; color: #212529; }
     .sec-title::before { content:''; width: 4px; height: 16px; background: #212529; margin-right: 8px; border-radius: 2px; }
 
-    /* 운세 스크롤 */
+    /* 스크롤 박스 */
     .scroll-wrap { display: flex; gap: 10px; overflow-x: auto; padding: 5px 2px 15px 2px; scrollbar-width: thin; }
     .luck-card {
         min-width: 65px; background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
@@ -73,7 +71,7 @@ st.markdown("""
     .l-char { font-family: 'Noto Serif KR'; font-size: 18px; font-weight: 900; line-height: 1.2; display: block; color: #333; }
     .l-ten { font-size: 10px; color: #adb5bd; display: block; margin-top: 4px; }
     
-    /* 신살 테이블 */
+    /* 신살표 */
     .ss-tbl { width: 100%; border: 1px solid #f1f3f5; border-radius: 8px; border-collapse: collapse; overflow: hidden; table-layout: fixed; }
     .ss-tbl th { background: #f8f9fa; font-size: 12px; padding: 10px; border-bottom: 1px solid #f1f3f5; color:#555;}
     .ss-tbl td { font-size: 12px; padding: 12px; border-bottom: 1px solid #f1f3f5; text-align: center; font-weight: bold; color: #333; }
@@ -116,6 +114,7 @@ def calc_solar_time(h, m, loc):
     return JI[ji_idx], total_min, diff
 
 def get_time_gan(day_gan, time_ji):
+    # 시두법 (일간 -> 시주 천간)
     if time_ji not in JI: return "甲"
     idx_map = {"甲":0, "己":0, "乙":2, "庚":2, "丙":4, "辛":4, "丁":6, "壬":6, "戊":8, "癸":8}
     start = idx_map.get(day_gan, 0)
@@ -142,6 +141,7 @@ def get_sibseong(day_gan, target):
 def get_shinsal(day_ji, target_ji):
     if not target_ji: return ""
     res = ""
+    # 12신살 (약식 매핑)
     if day_ji in "亥卯未":
         if target_ji == "子": res = "도화"
         elif target_ji == "巳": res = "역마"
@@ -156,7 +156,7 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    dw_num = 6
+    dw_num = 6 # 예시: 실제로는 절기 계산 필요
     lst = []
     s_g, s_j = GAN.index(m_g), JI.index(m_j)
     for i in range(1, 9):
@@ -166,35 +166,43 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
         lst.append({"age": dw_num + (i-1)*10, "gan": g, "ji": j})
     return lst, dw_num
 
-def get_seun(start_year, count=10):
+def get_seun_range(start_year, end_year):
+    # [수정] 2025~2035년 범위 계산
     lst = []
-    base_y = 1984 
-    base_g, base_j = 0, 0
-    curr_g = (base_g + (start_year - base_y)) % 10
-    curr_j = (base_j + (start_year - base_y)) % 12
-    for i in range(count):
-        g = GAN[(curr_g + i) % 10]
-        j = JI[(curr_j + i) % 12]
-        lst.append({"year": start_year + i, "gan": g, "ji": j})
+    base_y = 1984 # 갑자
+    for y in range(start_year, end_year + 1):
+        diff = y - base_y
+        g = GAN[diff % 10]
+        j = JI[diff % 12]
+        lst.append({"year": y, "gan": g, "ji": j})
     return lst
 
 def get_wolun(year_gan):
+    # 월두법
     start_map = {"甲":2, "己":2, "乙":4, "庚":4, "丙":6, "辛":6, "丁":8, "壬":8, "戊":0, "癸":0}
     s_idx = start_map.get(year_gan, 0)
     lst = []
     for i in range(12):
         g = GAN[(s_idx + i) % 10]
-        j = JI[(2 + i) % 12]
+        j = JI[(2 + i) % 12] # 인월(2) 시작
         lst.append({"mon": i+1, "gan": g, "ji": j})
     return lst
 
-# [NEW] 라이브러리 없이 순수 SVG로 오행 도표 그리기 (에러 원천 봉쇄)
+def get_gyeokguk(day_gan, month_ji):
+    # [NEW] 격국 계산 (월지 기준)
+    ten_god = get_sibseong(day_gan, month_ji)
+    
+    # 1. 특수격 (건록/양인)
+    if ten_god == "비견": return "건록격"
+    if ten_god == "겁재": return "양인격"
+    
+    # 2. 일반격 (십성 + 격)
+    return ten_god + "격"
+
 def generate_pentagon_svg(cnt_data):
-    # 설정
+    # 오행 이미지 생성 (SVG)
     radius = 120
     cx, cy = 150, 150
-    # 목(Top)부터 시계방향: 목->화->토->금->수
-    # 각도: -90, -18, 54, 126, 198 (도)
     angles = [-90, -18, 54, 126, 198]
     labels = ["목(木)", "화(火)", "토(土)", "금(金)", "수(水)"]
     keys = ["목", "화", "토", "금", "수"]
@@ -202,7 +210,6 @@ def generate_pentagon_svg(cnt_data):
     
     svg = f'<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">'
     
-    # 별 그리기 (상극 관계)
     points = []
     for ang in angles:
         rad = math.radians(ang)
@@ -210,28 +217,23 @@ def generate_pentagon_svg(cnt_data):
         y = cy + radius * 0.8 * math.sin(rad)
         points.append((x, y))
     
-    # 별 선 (0-2-4-1-3-0)
+    # 별 (상극)
     order = [0, 2, 4, 1, 3, 0]
     star_path = "M " + " L ".join([f"{points[i][0]},{points[i][1]}" for i in order])
     svg += f'<path d="{star_path}" stroke="#ddd" stroke-width="2" fill="none" />'
     
-    # 원 (상생 관계 - 바깥 원)
+    # 원 (상생)
     pentagon_path = "M " + " L ".join([f"{p[0]},{p[1]}" for p in points]) + " Z"
     svg += f'<path d="{pentagon_path}" stroke="#eee" stroke-width="2" fill="none" />'
 
-    # 노드 그리기
+    # 노드
     for i, (ang, label, k, c) in enumerate(zip(angles, labels, keys, colors)):
         rad = math.radians(ang)
         x = cx + radius * math.cos(rad)
         y = cy + radius * math.sin(rad)
         val = cnt_data.get(k, 0)
-        
-        # 크기 조절 (기본 25 + 개수당 5)
         r_size = 25 + (val * 3)
-        
-        # 원
         svg += f'<circle cx="{x}" cy="{y}" r="{r_size}" fill="{c}" opacity="0.9" />'
-        # 텍스트
         svg += f'<text x="{x}" y="{y-5}" font-family="sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">{label}</text>'
         svg += f'<text x="{x}" y="{y+10}" font-family="sans-serif" font-size="11" fill="white" text-anchor="middle">{val}개</text>'
 
@@ -244,20 +246,20 @@ with st.sidebar:
     name = st.text_input("이름", "사용자")
     gender = st.radio("성별", ["남자", "여자"])
     
-    if 'dob_fix' not in st.session_state:
-        st.session_state.dob_fix = datetime.date(1990, 5, 5)
-    d_input = st.date_input("생년월일", st.session_state.dob_fix, min_value=datetime.date(1900,1,1))
-    st.session_state.dob_fix = d_input
+    if 'dob_final' not in st.session_state:
+        st.session_state.dob_final = datetime.date(1990, 5, 5)
+    d_input = st.date_input("생년월일", st.session_state.dob_final, min_value=datetime.date(1900,1,1))
+    st.session_state.dob_final = d_input
     
     t_time = st.time_input("태어난 시간", datetime.time(7, 0))
     loc = st.selectbox("출생 지역", list(LOCATIONS.keys()))
     
     if st.button("결과 확인", type="primary"):
-        st.session_state.run_analysis = True
+        st.session_state.do_run = True
 
 # --- 4. 메인 로직 ---
-if 'run_analysis' in st.session_state and st.session_state.run_analysis:
-    d = st.session_state.dob_fix
+if 'do_run' in st.session_state and st.session_state.do_run:
+    d = st.session_state.dob_final
     
     try:
         conn = sqlite3.connect("saju.db")
@@ -266,7 +268,7 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         row = cur.fetchone()
         conn.close()
     except:
-        st.error("⚠️ saju.db 파일이 없습니다. DB 파일을 업로드해주세요.")
+        st.error("⚠️ saju.db 파일 오류. DB를 확인해주세요.")
         st.stop()
 
     if row:
@@ -278,15 +280,18 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         t_g = get_time_gan(d_g, t_j)
         day_master = d_g
         
+        # 격국 계산
+        gyeok = get_gyeokguk(d_g, m_j)
+        
         st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
         
-        # [1] 헤더
+        # [1] 헤더 (격국 추가됨)
         st.markdown(f"""
         <div class="header-box">
-            <div class="name-txt">{name} <span class="ganji-badge">{d_g}{d_j} (푸른 말)</span></div>
+            <div class="name-txt">{name} <span class="ganji-badge">{d_g}{d_j} (푸른 말)</span> <span class="gyeok-badge">{gyeok}</span></div>
             <div class="info-row">양력 {d.year}.{d.month}.{d.day} ({gender}) {t_time.strftime('%H:%M')}</div>
             <div class="info-row">음력 {l_m}월 {l_d}일 / 절기: {term if term else '-'}</div>
-            <div class="solar-row">진태양시 {int(t_min//60):02d}:{int(t_min%60):02d} (지역보정 {int(t_diff)}분)</div>
+            <div class="solar-row">진태양시 {int(t_min//60):02d}:{int(t_min%60):02d} ({t_j}시)</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -333,8 +338,9 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         tbl += "</tbody></table>"
         st.markdown(tbl, unsafe_allow_html=True)
         
-        # [2-1] 근묘화실
+        # [2-1] 사주 풀이 자세히 보기 (근묘화실)
         st.markdown("""
+        <div style="font-size:13px; font-weight:bold; color:#333; margin-top:20px;">사주 풀이 자세히 보기</div>
         <div class="fortune-wrap">
             <div class="fortune-cell"><span class="ft-title">말년운</span><span class="ft-desc">자녀, 결실</span></div>
             <div class="fortune-cell"><span class="ft-title">중년운</span><span class="ft-desc">자아, 정체성</span></div>
@@ -353,7 +359,7 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         </table>
         """, unsafe_allow_html=True)
 
-        # [4] 오행 분석 (SVG 이미지 + 십성 차트)
+        # [4] 오행 분석 (이미지+차트)
         st.markdown('<div class="sec-head">오행 및 십성 분석</div>', unsafe_allow_html=True)
         c1, c2 = st.columns([1, 1])
         
@@ -364,22 +370,20 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
             cnt[kor] += 1
             
         with c1:
-            st.write("**오행 상호작용 (Image)**")
-            # SVG 직접 렌더링
+            st.write("**오행 상호작용**")
             svg_html = generate_pentagon_svg(cnt)
             st.markdown(f'<div style="text-align:center;">{svg_html}</div>', unsafe_allow_html=True)
             
         with c2:
-            st.write("**십성 분포 (Chart)**")
+            st.write("**십성 분포**")
             df_oh = pd.DataFrame({"cat": list(cnt.keys()), "val": list(cnt.values())})
             chart = alt.Chart(df_oh).mark_arc(innerRadius=60).encode(
                 theta=alt.Theta("val", stack=True),
                 color=alt.Color("cat", scale=alt.Scale(domain=["목","화","토","금","수"], range=["#4caf50","#f44336","#ffc107","#9e9e9e","#2196f3"]))
             )
             st.altair_chart(chart, use_container_width=True)
-            
             top = max(cnt, key=cnt.get)
-            st.success(f"💡 **{top}** 기운이 가장 강합니다.")
+            st.info(f"💡 **{top}** 기운이 가장 강합니다.")
 
         # [5] 대운 Scroll
         dw_list, dw_num = get_daewoon_full(y_g, m_g, m_j, gender)
@@ -389,7 +393,7 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         for d_item in dw_list:
             g_t = get_sibseong(day_master, d_item['gan'])
             j_t = get_sibseong(day_master, d_item['ji'])
-            dw_h += f"""<div class="l-card">
+            dw_h += f"""<div class="luck-card">
                 <span class="l-age">{d_item['age']}</span>
                 <span class="l-ten">{g_t}</span>
                 <span class="l-char">{d_item['gan']}<br>{d_item['ji']}</span>
@@ -398,14 +402,14 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         dw_h += "</div>"
         st.markdown(dw_h, unsafe_allow_html=True)
 
-        # [6] 연운 Scroll
-        st.markdown('<div class="sec-head">연운 (세운)</div>', unsafe_allow_html=True)
-        seun_list = get_seun(d.year + 1)
+        # [6] 연운 (2025~2035) [수정됨]
+        st.markdown('<div class="sec-head">연운 (세운) (2025~2035)</div>', unsafe_allow_html=True)
+        seun_list = get_seun_range(2025, 2035) # 지정된 범위
         se_h = '<div class="scroll-wrap">'
         for s in seun_list:
             g_t = get_sibseong(day_master, s['gan'])
             j_t = get_sibseong(day_master, s['ji'])
-            se_h += f"""<div class="l-card" style="background:#fcfcfc;">
+            se_h += f"""<div class="luck-card" style="background:#fcfcfc;">
                 <span class="l-age">{s['year']}</span>
                 <span class="l-ten">{g_t}</span>
                 <span class="l-char" style="font-size:16px;">{s['gan']}<br>{s['ji']}</span>
@@ -425,7 +429,7 @@ if 'run_analysis' in st.session_state and st.session_state.run_analysis:
         for w in wolun_list:
             g_t = get_sibseong(day_master, w['gan'])
             j_t = get_sibseong(day_master, w['ji'])
-            wo_h += f"""<div class="l-card">
+            wo_h += f"""<div class="luck-card">
                 <span class="l-age">{w['mon']}월</span>
                 <span class="l-ten">{g_t}</span>
                 <span class="l-char" style="font-size:16px;">{w['gan']}<br>{w['ji']}</span>
