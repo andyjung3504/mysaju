@@ -103,4 +103,36 @@ if btn:
         .card { background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #ddd; }
         .big-text { font-size: 24px; font-weight: bold; }
         .sub-text { font-size: 14px; color: #555; }
-        .ten-god { font-size: 12px; color: #e91e63; font-weight: bold; display: block; margin-bottom:
+        .ten-god { font-size: 12px; color: #e91e63; font-weight: bold; display: block; margin-bottom: 5px;}
+        </style>
+        """, unsafe_allow_html=True)
+
+        c1, c2, c3, c4 = st.columns(4)
+        
+        def draw_card(col, title, gan, ji, t_gan, t_ji):
+            with col:
+                st.markdown(f"""
+                <div class="card">
+                    <div class="sub-text">{title}</div>
+                    <div class="ten-god">{t_gan}</div>
+                    <div class="big-text" style="color:{OHAENG_COLOR.get(GAN_OHAENG.get(gan, '목'), '#000')}">{gan}</div>
+                    <div class="big-text" style="color:{OHAENG_COLOR.get(JI_OHAENG.get(ji, '목'), '#000')}">{ji}</div>
+                    <div class="ten-god">{t_ji}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # 시/일/월/연 순서 출력
+        # 지지 십성은 간략화를 위해 임시 로직 적용 (JI_OHAENG 매핑 필요)
+        # (실제로는 지지->오행->십성 변환 로직이 완벽해야 함, 위 함수 사용)
+        t_ji_ten = get_ten_gods(day_master, list(JI_OHAENG.keys())[["자","축","인","묘","진","사","오","미","신","유","술","해"].index(t)])
+        
+        draw_card(c1, "시주 (자녀)", time_gan, t, ten_t_gan, t_ji_ten)
+        draw_card(c2, "일주 (본인)", d_gan[0], d_gan[1], "일간(나)", ten_d_ji)
+        draw_card(c3, "월주 (사회)", m_gan[0], m_gan[1], ten_m_gan, ten_m_ji)
+        draw_card(c4, "연주 (조상)", y_gan[0], y_gan[1], ten_y_gan, ten_y_ji)
+        
+        st.markdown("---")
+        st.info(f"당신의 핵심 성향(일주)은 **'{d_gan[0]}({d_kr[0]})'** 입니다. 이는 **{GAN_OHAENG[d_gan[0]]}**의 기운을 타고났음을 의미합니다.")
+
+    else:
+        st.error("데이터 조회 실패")
