@@ -4,7 +4,7 @@ import datetime
 import pandas as pd
 import altair as alt
 
-# --- [1] 페이지 설정 및 리얼 스타일 CSS ---
+# --- [1] 페이지 설정 및 스타일 (CSS) ---
 st.set_page_config(page_title="루나 만세력 Pro", page_icon="🌙", layout="wide")
 
 st.markdown("""
@@ -13,97 +13,88 @@ st.markdown("""
     
     html, body, .stApp {
         font-family: "Pretendard Variable", sans-serif;
-        background-color: #f8f9fa;
-        color: #212529;
+        background-color: #f7f7f7;
+        color: #111;
     }
 
-    /* [공통] 카드 박스 스타일 */
-    .card-box {
+    /* 메인 박스 스타일 */
+    .main-container {
         background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-        margin-bottom: 24px;
-        border: 1px solid #e9ecef;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     }
 
-    /* [1] 사주 원국표 (HTML 테이블로 정밀 구현) */
+    /* [1] 헤더 */
+    .header-area {
+        text-align: left; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px;
+    }
+    .user-title { font-size: 24px; font-weight: 800; color: #333; }
+    .ganji-badge { background: #eee; padding: 4px 8px; border-radius: 8px; font-size: 14px; color: #555; font-weight: bold; margin-left: 10px; }
+    .info-txt { font-size: 13px; color: #666; margin-top: 5px; }
+    .solar-txt { font-size: 13px; color: #ff6b6b; font-weight: bold; }
+
+    /* [2] 원국표 (Table) - PDF 스타일 정밀 구현 */
     .saju-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: center;
-        margin-bottom: 20px;
+        width: 100%; border-collapse: separate; border-spacing: 2px; text-align: center; table-layout: fixed;
     }
-    .saju-table th {
-        font-size: 13px; color: #868e96; font-weight: normal;
-        padding-bottom: 10px;
-    }
-    .saju-table td {
-        padding: 5px 0;
-        vertical-align: middle;
-    }
+    .saju-table th { font-size: 12px; color: #888; font-weight: normal; padding-bottom: 5px; }
     
-    /* 글자 스타일 */
-    .txt-gan { font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 900; }
-    .txt-ji { font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 900; }
-    
-    .badge {
-        font-size: 11px; display: inline-block; padding: 3px 8px;
-        border-radius: 12px; font-weight: bold; color: #495057;
-        background-color: #f1f3f5;
+    /* 천간/지지 박스 */
+    .char-box {
+        background: #fff; border: 1px solid #e5e5e5; border-radius: 12px;
+        padding: 10px 0; margin-bottom: 4px;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        height: 90px;
     }
+    .char-font { font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 900; line-height: 1; margin-bottom: 5px;}
+    .ten-god-txt { font-size: 11px; color: #888; font-weight: bold; }
     
-    .label-row { font-size: 12px; color: #adb5bd; font-weight: bold; text-align: left; padding-left: 10px; width: 60px;}
-    .data-cell { border-left: 1px dashed #e9ecef; width: 22%; }
-    .data-cell:first-child { border-left: none; }
+    /* 오행 색상 */
+    .c-wood { color: #39d353; } .c-fire { color: #ff6b6b; } 
+    .c-earth { color: #e3b341; } .c-metal { color: #a3a3a3; } .c-water { color: #58a6ff; }
 
-    /* [오행 색상] */
-    .c-wood { color: #52ba68; } .c-fire { color: #ff6b6b; } 
-    .c-earth { color: #fcc419; } .c-metal { color: #adb5bd; } .c-water { color: #339af0; }
-
-    /* [2] 신살표 스타일 */
-    .shinsal-table {
-        width: 100%; border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; border-collapse: collapse;
-    }
-    .shinsal-table th { background: #f8f9fa; font-size: 12px; padding: 8px; border-bottom: 1px solid #e9ecef; }
-    .shinsal-table td { font-size: 12px; padding: 10px; border-bottom: 1px solid #e9ecef; text-align: center; font-weight: bold; }
+    /* 하단 상세 정보 */
+    .detail-row td { font-size: 12px; padding: 6px 0; border-top: 1px solid #f0f0f0; color: #555; }
+    .row-label { font-weight: bold; color: #aaa; text-align: left; padding-left: 5px; width: 50px; }
     
-    /* [3] 대운 블록 스타일 (가로 스크롤) */
-    .daewoon-container {
-        display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px;
-        scrollbar-width: thin;
+    /* 운세 (근묘화실) */
+    .fortune-box {
+        background: #f9f9f9; border-radius: 8px; padding: 8px; text-align: center; margin-top: 10px;
     }
-    .dw-block {
-        min-width: 60px; text-align: center;
-        background: #fff; border: 1px solid #dee2e6; border-radius: 8px;
-        padding: 10px 5px; flex-shrink: 0;
-    }
-    .dw-age { font-size: 12px; font-weight: bold; color: #868e96; margin-bottom: 5px; }
-    .dw-ganji { font-size: 18px; font-weight: bold; font-family: 'Noto Serif KR'; margin: 5px 0; }
-    .dw-ten { font-size: 10px; color: #adb5bd; }
-    .current-dw { border: 2px solid #339af0; background-color: #e7f5ff; }
+    .fortune-title { font-size: 12px; font-weight: bold; display: block; margin-bottom: 2px; }
+    .fortune-desc { font-size: 10px; color: #999; }
 
-    /* [4] 헤더 프로필 */
-    .profile-header {
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 20px;
+    /* [3] 대운/연운/월운 스크롤 */
+    .scroll-container {
+        display: flex; gap: 8px; overflow-x: auto; padding: 10px 0;
+        scrollbar-width: thin; margin-bottom: 20px;
     }
-    .main-txt { font-size: 24px; font-weight: 800; color: #343a40; }
-    .sub-txt { font-size: 14px; color: #868e96; }
+    .luck-card {
+        min-width: 60px; background: #fff; border: 1px solid #eee; border-radius: 10px;
+        padding: 10px 5px; text-align: center; flex-shrink: 0;
+    }
+    .luck-age { font-size: 11px; color: #888; margin-bottom: 4px; display: block;}
+    .luck-char { font-family: 'Noto Serif KR'; font-size: 18px; font-weight: bold; line-height: 1.2; display: block; margin: 4px 0;}
+    .luck-ten { font-size: 10px; color: #aaa; display: block; }
     
-    /* 그래프 텍스트 */
-    .graph-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; color: #495057; }
+    .section-title { font-size: 16px; font-weight: 800; margin: 30px 0 10px 0; color: #333; display: flex; align-items: center; }
+    .section-title::before { content: ''; display: inline-block; width: 4px; height: 16px; background: #333; margin-right: 8px; border-radius: 2px; }
+
+    /* 그래프 */
+    .graph-area { background: #f8f9fa; border-radius: 16px; padding: 20px; text-align: center; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 데이터 & 로직 (안정성 확보) ---
+# --- 2. 데이터 및 로직 ---
 GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 JI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 OHAENG_MAP = {
     "甲":"wood","乙":"wood","丙":"fire","丁":"fire","戊":"earth","己":"earth","庚":"metal","辛":"metal","壬":"water","癸":"water",
     "寅":"wood","卯":"wood","巳":"fire","午":"fire","辰":"earth","戌":"earth","丑":"earth","未":"earth","申":"metal","酉":"metal","亥":"water","子":"water"
 }
-KR_OH = {"wood":"목", "fire":"화", "earth":"토", "metal":"금", "water":"수"}
 LOCATIONS = {"서울":127.0, "부산":129.1, "대구":128.6, "인천":126.7, "광주":126.8, "대전":127.4, "울산":129.3, "강릉":128.9, "제주":126.5}
 JIJANGGAN = {
     "子":"壬 癸", "丑":"癸 辛 己", "寅":"戊 丙 甲", "卯":"甲 乙", "辰":"乙 癸 戊", "巳":"戊 庚 丙",
@@ -156,14 +147,12 @@ def get_sibseong(day_gan, target):
     if diff == 4: return "편인" if same else "정인"
 
 def get_shinsal(day_ji, target_ji):
-    shin_map = {
-        "亥卯未": {"子":"년살","丑":"월살","寅":"망신","卯":"장성","辰":"반안","巳":"역마","午":"육해","未":"화개","申":"겁살","酉":"재살","戌":"천살","亥":"지살"},
-        "寅午戌": {"卯":"년살","辰":"월살","巳":"망신","午":"장성","未":"반안","申":"역마","酉":"육해","戌":"화개","亥":"겁살","子":"재살","丑":"천살","寅":"지살"},
-        "巳酉丑": {"午":"년살","未":"월살","申":"망신","酉":"장성","戌":"반안","亥":"역마","子":"육해","丑":"화개","寅":"겁살","卯":"재살","辰":"천살","巳":"지살"},
-        "申子辰": {"酉":"년살","戌":"월살","亥":"망신","子":"장성","丑":"반안","寅":"역마","卯":"육해","辰":"화개","巳":"겁살","午":"재살","未":"천살","申":"지살"}
-    }
-    res = shin_map.get(day_ji, {}).get(target_ji, "")
-    # 보정
+    if not target_ji: return ""
+    res = ""
+    if day_ji in "亥卯未":
+        if target_ji == "子": res = "도화"
+        elif target_ji == "巳": res = "역마"
+        elif target_ji == "未": res = "화개"
     if not res:
         if target_ji in "子午卯酉": res = "도화"
         elif target_ji in "寅申巳亥": res = "역마"
@@ -174,8 +163,7 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    dw_num = 6 # 예시 값
-    
+    dw_num = 6
     lst = []
     s_g, s_j = GAN.index(m_g), JI.index(m_j)
     for i in range(1, 9):
@@ -185,10 +173,27 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
         lst.append({"age": dw_num + (i-1)*10, "gan": g, "ji": j})
     return lst, dw_num
 
+def get_seun(start_year, count=10):
+    # 세운(연운) 계산 (간단 예시)
+    lst = []
+    # 1984년 = 갑자년 기준
+    base_y = 1984
+    base_g = 0 # 갑
+    base_j = 0 # 자
+    
+    curr_g = (base_g + (start_year - base_y)) % 10
+    curr_j = (base_j + (start_year - base_y)) % 12
+    
+    for i in range(count):
+        g = GAN[(curr_g + i) % 10]
+        j = JI[(curr_j + i) % 12]
+        lst.append({"year": start_year + i, "gan": g, "ji": j})
+    return lst
+
 # --- 3. UI 실행 ---
 with st.sidebar:
     st.title("🌙 루나 만세력")
-    name = st.text_input("이름", "사용자")
+    name = st.text_input("이름", "aaa")
     gender = st.radio("성별", ["남자", "여자"])
     d = st.date_input("생년월일", datetime.date(1973, 12, 24), min_value=datetime.date(1900,1,1))
     t_time = st.time_input("태어난 시간", datetime.time(7, 0))
@@ -204,7 +209,7 @@ if 'run' in st.session_state and st.session_state.run:
         row = cur.fetchone()
         conn.close()
     except:
-        st.error("⚠️ DB 오류. saju.db 파일이 필요합니다.")
+        st.error("⚠️ saju.db 파일이 없습니다.")
         st.stop()
 
     if row:
@@ -212,192 +217,137 @@ if 'run' in st.session_state and st.session_state.run:
         y_g, y_j = y_gj[0], y_gj[1]
         m_g, m_j = m_gj[0], m_gj[1]
         d_g, d_j = d_gj[0], d_gj[1]
-        
         t_j, t_min, t_diff = calc_solar_time(t_time.hour, t_time.minute, loc)
         t_g = get_time_gan(d_g, t_j)
         day_master = d_g
         
-        # [헤더]
-        st.markdown(f"""
-        <div class="profile-header">
-            <div>
-                <div class="main-txt">{name} <span style="font-size:16px; color:#888;">{d_g}{d_j}(푸른 말)</span></div>
-                <div class="sub-txt">양력 {d.year}.{d.month}.{d.day} {t_time.strftime('%H:%M')} {gender} {loc}</div>
-                <div class="sub-txt" style="color:#ff6b6b;">진태양시 {int(t_min//60):02d}:{int(t_min%60):02d} (지역보정 {int(t_diff)}분)</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # [SECTION 1] 메인 원국표 (HTML Table로 정밀 구현)
-        pillars = [
-            {"n":"시주", "g":t_g, "j":t_j},
-            {"n":"일주", "g":d_g, "j":d_j},
-            {"n":"월주", "g":m_g, "j":m_j},
-            {"n":"연주", "g":y_g, "j":y_j}
-        ]
+        # 메인 컨테이너 시작
+        st.markdown('<div class="main-container">', unsafe_allow_html=True)
         
-        # 데이터 계산
-        p_data = []
+        # [1] 헤더
+        st.markdown(f"""<div class="header-area">
+<div class="user-title">{name} <span class="ganji-badge">{d_g}{d_j} (푸른 말)</span></div>
+<div class="info-txt">양력 {d.year}.{d.month}.{d.day} ({gender}) {t_time.strftime('%H:%M')}</div>
+<div class="info-txt">음력 {l_m}월 {l_d}일 / 절기: {term if term else '-'}</div>
+<div class="solar-txt">진태양시 {int(t_min//60):02d}:{int(t_min%60):02d} ({t_j}시)</div>
+</div>""", unsafe_allow_html=True)
+
+        # [2] 원국표 (Table - 공백 제거)
+        pillars = [{"n":"시주","g":t_g,"j":t_j}, {"n":"일주","g":d_g,"j":d_j}, {"n":"월주","g":m_g,"j":m_j}, {"n":"연주","g":y_g,"j":y_j}]
+        
+        # HTML 조립
+        html_tbl = """<table class="saju-table"><thead><tr><th>생시</th><th>생일</th><th>생월</th><th>생년</th></tr></thead><tbody>"""
+        
+        # 천간 행
+        html_tbl += "<tr>"
         for p in pillars:
-            p_data.append({
-                "gan": p['g'], "ji": p['j'],
-                "gan_ten": "일간" if p['n']=="일주" else get_sibseong(day_master, p['g']),
-                "ji_ten": get_sibseong(day_master, p['j']),
-                "gan_col": "c-" + OHAENG_MAP[p['g']],
-                "ji_col": "c-" + OHAENG_MAP[p['j']],
-                "jijang": JIJANGGAN[p['j']],
-                "unseong": UNSEONG[day_master][JI.index(p['j'])],
-                "shinsal": get_shinsal(d_j, p['j'])
-            })
-
-        table_html = f"""
-        <div class="card-box">
-            <table class="saju-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>생시</th><th>생일</th><th>생월</th><th>생년</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="label-row">천간</td>
-                        <td class="data-cell"><div class="txt-gan {p_data[0]['gan_col']}">{p_data[0]['gan']}</div></td>
-                        <td class="data-cell"><div class="txt-gan {p_data[1]['gan_col']}">{p_data[1]['gan']}</div></td>
-                        <td class="data-cell"><div class="txt-gan {p_data[2]['gan_col']}">{p_data[2]['gan']}</div></td>
-                        <td class="data-cell"><div class="txt-gan {p_data[3]['gan_col']}">{p_data[3]['gan']}</div></td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">십성</td>
-                        <td class="data-cell"><span class="badge">{p_data[0]['gan_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[1]['gan_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[2]['gan_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[3]['gan_ten']}</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">지지</td>
-                        <td class="data-cell"><div class="txt-ji {p_data[0]['ji_col']}">{p_data[0]['ji']}</div></td>
-                        <td class="data-cell"><div class="txt-ji {p_data[1]['ji_col']}">{p_data[1]['ji']}</div></td>
-                        <td class="data-cell"><div class="txt-ji {p_data[2]['ji_col']}">{p_data[2]['ji']}</div></td>
-                        <td class="data-cell"><div class="txt-ji {p_data[3]['ji_col']}">{p_data[3]['ji']}</div></td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">십성</td>
-                        <td class="data-cell"><span class="badge">{p_data[0]['ji_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[1]['ji_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[2]['ji_ten']}</span></td>
-                        <td class="data-cell"><span class="badge">{p_data[3]['ji_ten']}</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">지장간</td>
-                        <td class="data-cell" style="font-size:11px; color:#aaa;">{p_data[0]['jijang']}</td>
-                        <td class="data-cell" style="font-size:11px; color:#aaa;">{p_data[1]['jijang']}</td>
-                        <td class="data-cell" style="font-size:11px; color:#aaa;">{p_data[2]['jijang']}</td>
-                        <td class="data-cell" style="font-size:11px; color:#aaa;">{p_data[3]['jijang']}</td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">12운성</td>
-                        <td class="data-cell" style="font-weight:bold; color:#339af0;">{p_data[0]['unseong']}</td>
-                        <td class="data-cell" style="font-weight:bold; color:#339af0;">{p_data[1]['unseong']}</td>
-                        <td class="data-cell" style="font-weight:bold; color:#339af0;">{p_data[2]['unseong']}</td>
-                        <td class="data-cell" style="font-weight:bold; color:#339af0;">{p_data[3]['unseong']}</td>
-                    </tr>
-                    <tr>
-                        <td class="label-row">12신살</td>
-                        <td class="data-cell" style="font-size:12px; color:#fa5252;">{p_data[0]['shinsal']}</td>
-                        <td class="data-cell" style="font-size:12px; color:#fa5252;">{p_data[1]['shinsal']}</td>
-                        <td class="data-cell" style="font-size:12px; color:#fa5252;">{p_data[2]['shinsal']}</td>
-                        <td class="data-cell" style="font-size:12px; color:#fa5252;">{p_data[3]['shinsal']}</td>
-                    </tr>
-                    <tr style="border-top: 1px solid #f1f3f5;">
-                        <td class="label-row" style="padding-top:15px;">운세</td>
-                        <td class="data-cell" style="padding-top:15px;"><div style="font-size:12px; font-weight:bold;">말년운<br><span style="color:#aaa; font-weight:normal;">자녀,결실</span></div></td>
-                        <td class="data-cell" style="padding-top:15px;"><div style="font-size:12px; font-weight:bold;">중년운<br><span style="color:#aaa; font-weight:normal;">자아,정체성</span></div></td>
-                        <td class="data-cell" style="padding-top:15px;"><div style="font-size:12px; font-weight:bold;">청년운<br><span style="color:#aaa; font-weight:normal;">부모,사회</span></div></td>
-                        <td class="data-cell" style="padding-top:15px;"><div style="font-size:12px; font-weight:bold;">초년운<br><span style="color:#aaa; font-weight:normal;">조상,유년</span></div></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        """
-        st.markdown(table_html, unsafe_allow_html=True)
-
-        # [SECTION 2] 신살과 길성 (테이블 형태)
-        st.markdown('<div class="card-box">', unsafe_allow_html=True)
-        st.markdown('<div class="graph-title">⭐ 신살과 길성</div>', unsafe_allow_html=True)
+            ten = "일간" if p['n']=="일주" else get_sibseong(day_master, p['g'])
+            col = "c-" + OHAENG_MAP[p['g']]
+            html_tbl += f"""<td><div class="char-box"><span class="char-font {col}">{p['g']}</span><span class="ten-god-txt">{ten}</span></div></td>"""
+        html_tbl += "</tr>"
         
-        # 신살 데이터 (예시)
-        ss_html = """
-        <table class="shinsal-table">
-            <tr>
-                <th>구분</th><th>생시</th><th>생일</th><th>생월</th><th>생년</th>
-            </tr>
-            <tr>
-                <td>천간</td>
-                <td>-</td><td>현침살</td><td>현침살</td><td>백호대살</td>
-            </tr>
-            <tr>
-                <td>지지</td>
-                <td>도화살</td><td>홍염살</td><td>태극귀인</td><td>천을귀인</td>
-            </tr>
-        </table>
-        """
-        st.markdown(ss_html, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # 지지 행
+        html_tbl += "<tr>"
+        for p in pillars:
+            ten = get_sibseong(day_master, p['j'])
+            col = "c-" + OHAENG_MAP[p['j']]
+            html_tbl += f"""<td><div class="char-box"><span class="char-font {col}">{p['j']}</span><span class="ten-god-txt">{ten}</span></div></td>"""
+        html_tbl += "</tr>"
+        
+        # 상세 정보 (지장간, 12운성, 신살)
+        html_tbl += """<tr class="detail-row"><td class="row-label">지장간</td>"""
+        for p in pillars: html_tbl += f"<td>{JIJANGGAN[p['j']]}</td>"
+        html_tbl += """</tr><tr class="detail-row"><td class="row-label">운성</td>"""
+        for p in pillars: html_tbl += f"<td style='color:#339af0; font-weight:bold;'>{UNSEONG[day_master][JI.index(p['j'])]}</td>"
+        html_tbl += """</tr><tr class="detail-row"><td class="row-label">신살</td>"""
+        for p in pillars: html_tbl += f"<td style='color:#ff6b6b; font-size:11px;'>{get_shinsal(d_j, p['j'])}</td>"
+        html_tbl += "</tr></tbody></table>"
+        
+        # 근묘화실 박스
+        html_tbl += """<div style="display:flex; gap:4px; margin-top:10px;">
+<div class="fortune-box" style="flex:1"><span class="fortune-title">말년운</span><span class="fortune-desc">자녀,결실</span></div>
+<div class="fortune-box" style="flex:1"><span class="fortune-title">중년운</span><span class="fortune-desc">자아,정체성</span></div>
+<div class="fortune-box" style="flex:1"><span class="fortune-title">청년운</span><span class="fortune-desc">부모,사회</span></div>
+<div class="fortune-box" style="flex:1"><span class="fortune-title">초년운</span><span class="fortune-desc">조상,유년</span></div>
+</div>"""
+        
+        st.markdown(html_tbl, unsafe_allow_html=True)
 
-        # [SECTION 3] 오행과 십성 분석 (도넛 차트)
+        # [3] 오행 분석
+        st.markdown('<div class="section-title">오행 및 십성 분석</div>', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         
-        # 오행 데이터
-        all_char = [p['g'] for p in pillars] + [p['j'] for p in pillars]
+        all_c = [p['g'] for p in pillars] + [p['j'] for p in pillars]
         cnt = {"목":0,"화":0,"토":0,"금":0,"수":0}
-        for c in all_char: cnt[KR_OH[OHAENG_MAP[c]]] += 1
-        df_oh = pd.DataFrame({"category": list(cnt.keys()), "value": list(cnt.values())})
+        for c in all_c: cnt[OHAENG_MAP[c] if OHAENG_MAP[c]!="metal" else "metal"] += 1 # dummy fix for mapping text
         
-        # 도넛 차트 생성 (Altair)
+        # 매핑 수정
+        cnt_kor = {"목":0,"화":0,"토":0,"금":0,"수":0}
+        for c in all_c:
+            k = "목" if OHAENG_MAP[c]=="wood" else "화" if OHAENG_MAP[c]=="fire" else "토" if OHAENG_MAP[c]=="earth" else "금" if OHAENG_MAP[c]=="metal" else "수"
+            cnt_kor[k] += 1
+            
+        df_oh = pd.DataFrame({"category": list(cnt_kor.keys()), "value": list(cnt_kor.values())})
         base = alt.Chart(df_oh).encode(theta=alt.Theta("value", stack=True))
-        pie = base.mark_arc(outerRadius=80, innerRadius=50).encode(
-            color=alt.Color("category", scale=alt.Scale(domain=["목","화","토","금","수"], range=["#52ba68","#ff6b6b","#fcc419","#adb5bd","#339af0"])),
-            tooltip=["category", "value"]
+        pie = base.mark_arc(outerRadius=70, innerRadius=40).encode(
+            color=alt.Color("category", scale=alt.Scale(domain=["목","화","토","금","수"], range=["#39d353","#ff6b6b","#e3b341","#a3a3a3","#58a6ff"]))
         )
         
         with c1:
-            st.markdown('<div class="card-box" style="height:350px;">', unsafe_allow_html=True)
-            st.markdown('<div class="graph-title">📊 오행 분포</div>', unsafe_allow_html=True)
             st.altair_chart(pie, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
         with c2:
-            st.markdown('<div class="card-box" style="height:350px;">', unsafe_allow_html=True)
-            st.markdown('<div class="graph-title">⚖️ 신강/신약 분석</div>', unsafe_allow_html=True)
-            st.info(f"**{name}**님은 **중화신강**한 사주입니다.")
-            st.progress(70)
-            st.caption("용신: 금(억부용신) / 희신: 수")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.info(f"**{name}**님은 **{max(cnt_kor, key=cnt_kor.get)}** 기운이 가장 강합니다.")
+            st.write("용신: **금(억부)** / 희신: **수**")
 
-        # [SECTION 4] 대운 흐름 (가로 스크롤)
+        # [4] 대운 (스크롤)
         dw_list, dw_num = get_daewoon_full(y_g, m_g, m_j, gender)
+        st.markdown(f'<div class="section-title">대운 흐름 (대운수 {dw_num})</div>', unsafe_allow_html=True)
         
-        st.markdown('<div class="card-box">', unsafe_allow_html=True)
-        st.markdown(f'<div class="graph-title">🌊 대운 (대운수: {dw_num})</div>', unsafe_allow_html=True)
-        
-        dw_html = '<div class="daewoon-container">'
+        dw_html = '<div class="scroll-container">'
         for d in dw_list:
-            g_ten = get_sibseong(day_master, d['gan'])
-            j_ten = get_sibseong(day_master, d['ji'])
-            un = UNSEONG[day_master][JI.index(d['ji'])]
-            
-            dw_html += f"""
-            <div class="dw-block">
-                <div class="dw-age">{d['age']}</div>
-                <div class="dw-ten">{g_ten}</div>
-                <div class="dw-ganji" style="color:{'#ff6b6b' if d['gan'] in '丙丁巳午' else '#333'}">{d['gan']}<br>{d['ji']}</div>
-                <div class="dw-ten">{j_ten}</div>
-                <div class="dw-ten">{un}</div>
-            </div>
-            """
-        dw_html += '</div></div>'
+            g_t = get_sibseong(day_master, d['gan'])
+            j_t = get_sibseong(day_master, d['ji'])
+            dw_html += f"""<div class="luck-card">
+<span class="luck-age">{d['age']}</span>
+<span class="luck-ten">{g_t}</span>
+<span class="luck-char">{d['gan']}<br>{d['ji']}</span>
+<span class="luck-ten">{j_t}</span>
+</div>"""
+        dw_html += "</div>"
         st.markdown(dw_html, unsafe_allow_html=True)
+
+        # [5] 연운 (세운) - 추가됨
+        st.markdown('<div class="section-title">연운 (세운) 흐름</div>', unsafe_allow_html=True)
+        seun_list = get_seun(d.year + 10) # 예: 10세부터
+        se_html = '<div class="scroll-container">'
+        for s in seun_list:
+            g_t = get_sibseong(day_master, s['gan'])
+            j_t = get_sibseong(day_master, s['ji'])
+            se_html += f"""<div class="luck-card" style="background:#fcfcfc;">
+<span class="luck-age">{s['year']}</span>
+<span class="luck-ten">{g_t}</span>
+<span class="luck-char" style="font-size:16px;">{s['gan']}<br>{s['ji']}</span>
+<span class="luck-ten">{j_t}</span>
+</div>"""
+        se_html += "</div>"
+        st.markdown(se_html, unsafe_allow_html=True)
+
+        # [6] 월운 - 추가됨
+        st.markdown('<div class="section-title">월운 (이번달 기준)</div>', unsafe_allow_html=True)
+        # 월운 예시 (단순화)
+        mon_html = '<div class="scroll-container">'
+        m_gan = "甲"
+        m_ji = "子"
+        for i in range(12):
+            # 임의 데이터 (실제 계산 필요)
+            mon_html += f"""<div class="luck-card">
+<span class="luck-age">{i+1}월</span>
+<span class="luck-char" style="font-size:14px;">예시</span>
+</div>"""
+        mon_html += "</div>"
+        st.markdown(mon_html, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True) # End Main Container
 
     else:
         st.error("데이터 조회 실패")
