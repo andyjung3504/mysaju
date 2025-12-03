@@ -1,85 +1,51 @@
 import streamlit as st
 import sqlite3
 import datetime
-from datetime import timedelta
 import pandas as pd
 import altair as alt
 
-# --- 1. 페이지 설정 및 CSS (디자인 핵심) ---
-st.set_page_config(page_title="AI 정통 만세력", page_icon="🔮", layout="wide")
+# --- 1. 페이지 설정 및 CSS ---
+st.set_page_config(page_title="AI 프로 만세력", page_icon="🔮", layout="wide")
 
 st.markdown("""
 <style>
-    /* 전체 배경 */
     .stApp { background-color: #f5f7f9; }
     
-    /* 사주 카드 컨테이너 */
+    /* 메인 사주 카드 디자인 */
     .pillar-card {
         background-color: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         border: 1px solid #e1e4e8;
-        padding: 0;
-        margin: 5px;
-        overflow: hidden;
+        padding: 0; margin: 2px;
         text-align: center;
+        overflow: hidden;
     }
-    
-    /* 카드 헤더 (시주, 일주 등) */
     .card-header {
-        background-color: #f1f3f5;
-        color: #495057;
-        font-size: 14px;
-        font-weight: bold;
-        padding: 8px 0;
-        border-bottom: 1px solid #e1e4e8;
+        background-color: #495057; color: white;
+        font-size: 14px; font-weight: bold; padding: 6px 0;
     }
+    .ten-god-top { font-size: 12px; font-weight: bold; color: #555; background-color: #f1f3f5; padding: 4px; border-bottom: 1px solid #eee; }
+    .hanja-box { padding: 10px 0; }
+    .hanja { font-family: 'Serif'; font-size: 34px; font-weight: 900; line-height: 1.1; }
+    .ten-god-bottom { font-size: 12px; font-weight: bold; color: #555; background-color: #f8f9fa; padding: 2px; }
     
-    /* 십성 (육친) 태그 */
-    .ten-god-tag {
-        font-size: 11px;
-        color: #868e96;
-        margin-top: 8px;
-        margin-bottom: 2px;
-        font-weight: bold;
-    }
-    
-    /* 한자 스타일 (천간/지지) */
-    .hanja {
-        font-family: 'KoPub Batang', serif;
-        font-size: 36px;
-        font-weight: 900;
-        line-height: 1.1;
-    }
-    
-    /* 지장간 (작은 글씨) */
-    .jijanggan {
-        font-size: 11px;
-        color: #adb5bd;
-        margin: 5px 0;
-        letter-spacing: 2px;
-    }
+    .detail-box { font-size: 11px; color: #868e96; padding: 4px; border-top: 1px dashed #eee; }
+    .jijanggan { color: #adb5bd; letter-spacing: 1px; margin-bottom: 2px; }
+    .unseong { color: #228be6; font-weight: bold; }
+    .shinsal { color: #e03131; font-weight: bold; }
 
-    /* 12운성 및 신살 박스 */
-    .bottom-info {
-        background-color: #f8f9fa;
-        padding: 8px 0;
-        border-top: 1px dashed #e1e4e8;
-    }
-    .unseong { font-size: 13px; color: #495057; font-weight: bold; }
-    .shinsal { font-size: 11px; color: #e03131; margin-top: 2px; font-weight: bold; }
-    
     /* 오행 색상 */
-    .wood { color: #51cf66; } /* 목 - 초록 */
-    .fire { color: #ff6b6b; } /* 화 - 빨강 */
-    .earth { color: #fcc419; } /* 토 - 노랑 */
-    .metal { color: #adb5bd; } /* 금 - 회색 */
-    .water { color: #339af0; } /* 수 - 파랑 */
+    .wood { color: #51cf66; } .fire { color: #ff6b6b; } .earth { color: #fcc419; } .metal { color: #adb5bd; } .water { color: #339af0; }
     
+    /* 탭 스타일 조정 */
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: white; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stTabs [aria-selected="true"] { background-color: #e7f5ff; color: #1c7ed6; border-bottom: 2px solid #1c7ed6; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 기초 데이터 ---
+# --- 2. 기초 데이터 및 매핑 ---
 GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 JI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 OHAENG_MAP = {
@@ -91,14 +57,13 @@ OHAENG_MAP = {
 }
 OHAENG_KR = {"wood":"목", "fire":"화", "earth":"토", "metal":"금", "water":"수"}
 
-# 지장간 데이터 (여기, 중기, 본기)
+# 지장간
 JIJANGGAN = {
     "子": "壬 癸", "丑": "癸 辛 己", "寅": "戊 丙 甲", "卯": "甲 乙",
     "辰": "乙 癸 戊", "巳": "戊 庚 丙", "午": "丙 己 丁", "未": "丁 乙 己",
     "申": "戊 壬 庚", "酉": "庚 辛", "戌": "辛 丁 戊", "亥": "戊 甲 壬"
 }
-
-# 12운성 테이블
+# 12운성
 UNSEONG_TABLE = {
     "甲": ["목욕","관대","건록","제왕","쇠","병","사","묘","절","태","양","장생"], 
     "乙": ["병","쇠","제왕","건록","관대","목욕","장생","양","태","절","묘","사"],
@@ -111,46 +76,41 @@ UNSEONG_TABLE = {
     "壬": ["제왕","쇠","병","사","묘","절","태","양","장생","목욕","관대","건록"],
     "癸": ["건록","제왕","쇠","병","사","묘","절","태","양","장생","목욕","관대"]
 }
+LOCATIONS = {"서울/경기": 127.0, "강원(강릉)": 128.9, "강원(춘천)": 127.7, "대전/충남": 127.4, "충북(청주)": 127.5, "광주/전남": 126.8, "전북(전주)": 127.1, "부산/경남": 129.1, "대구/경북": 128.6, "울산": 129.3, "제주": 126.5, "인천": 126.7}
 
-# 주요 도시 경도
-LOCATIONS = {
-    "서울/경기": 127.0, "강원(강릉)": 128.9, "강원(춘천)": 127.7,
-    "대전/충남": 127.4, "충북(청주)": 127.5, "광주/전남": 126.8, "전북(전주)": 127.1,
-    "부산/경남": 129.1, "대구/경북": 128.6, "울산": 129.3, "제주": 126.5, "인천": 126.7
-}
+# --- [상세 분석용 데이터] 합/충/형/파/해/공망 ---
+CHEONGAN_HAP = {"甲己":"토", "乙庚":"금", "丙辛":"수", "丁壬":"목", "戊癸":"화"}
+CHEONGAN_CHUNG = ["甲庚", "甲戊", "乙辛", "乙己", "丙壬", "丙庚", "丁癸", "丁辛", "戊壬", "己癸"] # 대표적 충
+JIJI_YUKHAP = {"子丑":"토", "寅亥":"목", "卯戌":"화", "辰酉":"금", "巳申":"수", "午未":"화"}
+JIJI_SAMHAP = {"申子辰":"수국", "亥卯未":"목국", "寅午戌":"화국", "巳酉丑":"금국"}
+JIJI_BANGHAP = {"寅卯辰":"목국", "巳午未":"화국", "申酉戌":"금국", "亥子丑":"수국"}
+JIJI_CHUNG = {"子午", "丑未", "寅申", "卯酉", "辰戌", "巳亥"}
+JIJI_WONJIN = {"子未", "丑午", "寅酉", "卯申", "辰亥", "巳戌"}
+JIJI_HYEONG = {"寅巳", "巳申", "申寅", "丑戌", "戌未", "未丑", "子卯", "辰辰", "午午", "酉酉", "亥亥"}
+JIJI_PA = {"子酉", "丑辰", "寅亥", "卯午", "巳申", "戌未"}
 
-# --- 3. 로직 함수들 ---
+# --- 3. 로직 함수 ---
 
 def calculate_time_ji(hour, minute, location_name):
-    """진태양시 계산"""
-    longitude = LOCATIONS.get(location_name, 127.0)
-    correction = (longitude - 135.0) * 4
+    correction = (LOCATIONS.get(location_name, 127.0) - 135.0) * 4
     total_min = hour * 60 + minute + correction
     if total_min < 0: total_min += 1440
     if total_min >= 1440: total_min -= 1440
-    idx = int((total_min + 60) // 120) % 12
-    return JI[idx], total_min
+    return JI[int((total_min + 60) // 120) % 12], total_min
 
 def get_time_pillar_gan(day_gan, time_ji):
-    """시간 도출"""
     if time_ji not in JI: return "甲"
     start_idx_map = {"甲":0, "己":0, "乙":2, "庚":2, "丙":4, "辛":4, "丁":6, "壬":6, "戊":8, "癸":8}
     return GAN[(start_idx_map.get(day_gan, 0) + JI.index(time_ji)) % 10]
 
 def get_sibseong(day_gan, target_char):
-    """십성 계산"""
     if not target_char: return ""
     o_map = {"wood":0, "fire":1, "earth":2, "metal":3, "water":4}
     try:
         d_oh = o_map[OHAENG_MAP[day_gan]]
         t_oh = o_map[OHAENG_MAP[target_char]]
     except: return ""
-    
-    gan_all = GAN + JI
-    d_yy = gan_all.index(day_gan) % 2
-    t_yy = gan_all.index(target_char) % 2
-    same_yy = (d_yy == t_yy)
-    
+    same_yy = ( (GAN+JI).index(day_gan)%2 ) == ( (GAN+JI).index(target_char)%2 )
     diff = (t_oh - d_oh) % 5
     if diff == 0: return "비견" if same_yy else "겁재"
     if diff == 1: return "식신" if same_yy else "상관"
@@ -162,75 +122,87 @@ def get_unseong(day_gan, target_ji):
     return UNSEONG_TABLE[day_gan][JI.index(target_ji)] if target_ji in JI else ""
 
 def get_shinsal(day_ji, target_ji):
-    # 간단 신살 로직
     if day_ji in ["亥","卯","未"] and target_ji == "子": return "도화살"
     if day_ji in ["寅","午","戌"] and target_ji == "卯": return "도화살"
     if day_ji in ["巳","酉","丑"] and target_ji == "午": return "도화살"
     if day_ji in ["申","子","辰"] and target_ji == "酉": return "도화살"
     if target_ji in ["辰","戌","丑","未"]: return "화개살"
     if target_ji in ["寅","申","巳","亥"]: return "역마살"
-    if day_ji == target_ji: return "지살" # 임시
     return ""
 
-def calculate_daewoon_num(birth_date, is_forward, current_month_ganji):
-    """대운수 계산"""
-    conn = sqlite3.connect("saju.db")
-    cur = conn.cursor()
-    cur.execute("SELECT cd_sy, cd_sm, cd_sd, cd_kyganjee FROM calenda_data WHERE cd_sy BETWEEN ? AND ?", (birth_date.year-1, birth_date.year+1))
-    rows = cur.fetchall()
-    conn.close()
-    
-    if not rows: return 5
-    df = pd.DataFrame(rows, columns=['y', 'm', 'd', 'month_ganji'])
-    df['date'] = pd.to_datetime(df[['y', 'm', 'd']].astype(str).agg('-'.join, axis=1))
-    
-    birth_ts = pd.Timestamp(birth_date)
-    target_date = None
+def get_gongmang(day_gan, day_ji):
+    """공망 계산 (일주 기준)"""
+    gan_idx = GAN.index(day_gan)
+    ji_idx = JI.index(day_ji)
+    diff = ji_idx - gan_idx
+    if diff < 0: diff += 12
+    # 공망은 diff 바로 뒤 2글자
+    return [JI[diff], JI[(diff+1)%12]]
 
-    if is_forward:
-        future = df[df['date'] > birth_ts].sort_values('date')
-        for _, row in future.iterrows():
-            if row['month_ganji'] != current_month_ganji:
-                target_date = row['date']; break
-    else:
-        past = df[df['date'] <= birth_ts].sort_values('date', ascending=False)
-        for _, row in past.iterrows():
-            if row['month_ganji'] != current_month_ganji:
-                target_date = row['date']; break
-        if target_date is None and not past.empty: target_date = past.iloc[-1]['date']
-
-    if target_date is None: return 5
-    daewoon_num = round(abs((birth_ts - target_date).days) / 3)
-    return 1 if daewoon_num == 0 else daewoon_num
-
-def get_daewoon_list(year_gan, year_ji, month_gan, month_ji, gender, birth_date):
-    is_yang = (GAN.index(year_gan) % 2 == 0)
-    is_man = (gender == "남자")
-    is_forward = (is_yang and is_man) or (not is_yang and not is_man)
+def check_interactions(pillars):
+    """합, 충, 형, 파, 해 분석"""
+    results = {"hap":[], "chung":[], "wonjin":[], "hyeong":[], "pa":[]}
     
-    dw_num = calculate_daewoon_num(birth_date, is_forward, f"{month_gan}{month_ji}")
+    # 천간 합/충
+    gans = [p['g'] for p in pillars]
+    jis = [p['j'] for p in pillars]
+    titles = ["시", "일", "월", "연"]
     
-    s_gan_idx = GAN.index(month_gan)
-    s_ji_idx = JI.index(month_ji)
-    
-    lst = []
-    for i in range(1, 9):
-        step = i if is_forward else -i
-        g = GAN[(s_gan_idx + step) % 10]
-        j = JI[(s_ji_idx + step) % 12]
-        lst.append({"나이": dw_num + (i-1)*10, "간지": f"{g}{j}", "육친": get_sibseong(year_gan, g)}) # 예시 육친
+    # 2개씩 짝지어 비교 (연-월, 월-일, 일-시)
+    for i in range(3):
+        pair_gan = "".join(sorted([gans[i], gans[i+1]])) # 정렬해서 키 찾기
+        pair_ji = "".join(sorted([jis[i], jis[i+1]])) # 지지 정렬은 주의 필요하나 여기선 집합으로 체크
+        loc = f"{titles[i+1]}-{titles[i]}"
         
-    return lst, "순행" if is_forward else "역행", dw_num
+        # 천간합
+        for k, v in CHEONGAN_HAP.items():
+            if "".join(sorted(k)) == pair_gan: results['hap'].append(f"[{loc}] 천간합: {k}화{v}")
+            
+        # 천간충
+        for k in CHEONGAN_CHUNG:
+            if "".join(sorted(k)) == pair_gan: results['chung'].append(f"[{loc}] 천간충: {k}")
+
+        # 지지육합
+        for k, v in JIJI_YUKHAP.items():
+            # 육합은 순서 상관없이
+            if (jis[i] in k and jis[i+1] in k) and (jis[i] != jis[i+1]): 
+                results['hap'].append(f"[{loc}] 지지육합: {k}화{v}")
+                
+        # 지지충
+        curr_ji_set = {jis[i], jis[i+1]}
+        for k in JIJI_CHUNG:
+            if set(k) == curr_ji_set: results['chung'].append(f"[{loc}] 지지충: {k}")
+            
+        # 원진
+        for k in JIJI_WONJIN:
+            if set(k) == curr_ji_set: results['wonjin'].append(f"[{loc}] 원진살: {k}")
+
+        # 형
+        for k in JIJI_HYEONG:
+             if set(k) == curr_ji_set: results['hyeong'].append(f"[{loc}] 형살: {k}")
+             
+        # 파
+        for k in JIJI_PA:
+             if set(k) == curr_ji_set: results['pa'].append(f"[{loc}] 파살: {k}")
+
+    # 삼합/방합 (3글자 이상 체크는 전체 지지에서)
+    ji_str = "".join(jis)
+    for k, v in JIJI_SAMHAP.items():
+        count = sum([1 for char in k if char in ji_str])
+        if count == 3: results['hap'].append(f"[전체] 지지삼합: {k} ({v})")
+        elif count == 2: results['hap'].append(f"[전체] 삼합반합: {k} 글자 중 2자")
+        
+    return results
 
 # --- 4. UI 실행 ---
 with st.sidebar:
-    st.title("🔮 사주 입력")
-    name = st.text_input("이름", "사용자")
+    st.title("🔮 사주 정보 입력")
+    name = st.text_input("이름", "홍길동")
     gender = st.radio("성별", ["남자", "여자"])
     d = st.date_input("생년월일", datetime.date(1973, 12, 24), min_value=datetime.date(1900,1,1), max_value=datetime.date(2100,12,31))
     t_time = st.time_input("태어난 시간", datetime.time(6, 0))
     loc = st.selectbox("출생 지역", list(LOCATIONS.keys()))
-    btn = st.button("분석하기", type="primary")
+    btn = st.button("사주풀이 시작", type="primary")
 
 if btn:
     conn = sqlite3.connect("saju.db")
@@ -240,7 +212,7 @@ if btn:
     conn.close()
 
     if row:
-        y_gj, y_kr, m_gj, m_kr, d_gj, d_kr = row
+        y_gj, _, m_gj, _, d_gj, _ = row
         y_g, y_j = y_gj[0], y_gj[1]
         m_g, m_j = m_gj[0], m_gj[1]
         d_g, d_j = d_gj[0], d_gj[1]
@@ -248,77 +220,106 @@ if btn:
         real_ji, s_min = calculate_time_ji(t_time.hour, t_time.minute, loc)
         t_g = get_time_pillar_gan(d_g, real_ji)
         t_j = real_ji
-        
         day_master = d_g
         
-        dw_list, dw_dir, dw_num = get_daewoon_list(y_g, y_j, m_g, m_j, gender, d)
-        
-        st.header(f"{name}님의 사주명식")
-        st.markdown(f"**양력** {d.year}.{d.month}.{d.day} / **진태양시** {int(s_min//60):02d}:{int(s_min%60):02d} ({t_j}시)")
-        
-        # [사주 4기둥 카드 출력] - 여기가 핵심 디자인 부분
-        cols = st.columns(4)
+        st.header(f"📜 {name}님의 상세 사주풀이")
+        st.caption(f"양력 {d.year}.{d.month}.{d.day} / 진태양시 {int(s_min//60):02d}:{int(s_min%60):02d}")
+
+        # --- [1] 메인 대시보드 (한눈에 보는 도표) ---
         pillars = [
-            {"name": "시주 (말년)", "g": t_g, "j": t_j},
-            {"name": "일주 (본인)", "g": d_g, "j": d_j},
-            {"name": "월주 (사회)", "g": m_g, "j": m_j},
-            {"name": "연주 (초년)", "g": y_g, "j": y_j},
+            {"name": "시주", "g": t_g, "j": t_j, "role": "자녀/말년"},
+            {"name": "일주", "g": d_g, "j": d_j, "role": "본인/배우자"},
+            {"name": "월주", "g": m_g, "j": m_j, "role": "부모/사회"},
+            {"name": "연주", "g": y_g, "j": y_j, "role": "조상/초년"},
         ]
         
+        cols = st.columns(4)
         for i, col in enumerate(cols):
             p = pillars[i]
-            
-            # 십성 계산
-            ten_g = "일간" if i == 1 else get_sibseong(day_master, p['g'])
+            # 계산
+            ten_g = "일간(나)" if i == 1 else get_sibseong(day_master, p['g'])
             ten_j = get_sibseong(day_master, p['j'])
-            
-            # 스타일 클래스
-            c_g = OHAENG_MAP[p['g']]
-            c_j = OHAENG_MAP[p['j']]
-            
-            # 지장간/운성/신살
-            jijang = JIJANGGAN.get(p['j'], "")
             unseong = get_unseong(day_master, p['j'])
             shinsal = get_shinsal(d_j, p['j'])
+            jijang = JIJANGGAN.get(p['j'], "")
             
-            # HTML 렌더링
-            col.markdown(f"""
-            <div class="pillar-card">
-                <div class="card-header">{p['name']}</div>
-                <div class="ten-god-tag">{ten_g}</div>
-                <div class="hanja {c_g}">{p['g']}</div>
-                <div class="hanja {c_j}">{p['j']}</div>
-                <div class="jijanggan">{jijang}</div>
-                <div class="ten-god-tag">{ten_j}</div>
-                <div class="bottom-info">
-                    <div class="unseong">{unseong}</div>
-                    <div class="shinsal">{shinsal}</div>
+            with col:
+                st.markdown(f"""
+                <div class="pillar-card">
+                    <div class="card-header">{p['name']} ({p['role']})</div>
+                    <div class="ten-god-top">{ten_g}</div>
+                    <div class="hanja-box">
+                        <div class="hanja {OHAENG_MAP[p['g']]}">{p['g']}</div>
+                        <div class="hanja {OHAENG_MAP[p['j']]}">{p['j']}</div>
+                    </div>
+                    <div class="ten-god-bottom">{ten_j}</div>
+                    <div class="detail-box">
+                        <div class="jijanggan">{jijang}</div>
+                        <div class="unseong">{unseong}</div>
+                        <div class="shinsal">{shinsal if shinsal else "-"}</div>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
         st.write("")
+        st.markdown("---")
         
-        # [대운 및 오행 차트]
-        c1, c2 = st.columns([1, 1])
-        with c1:
-            st.subheader(f"대운 (대운수 {dw_num}, {dw_dir})")
-            dw_df = pd.DataFrame(dw_list)
-            st.dataframe(dw_df.set_index("나이").T, use_container_width=True)
+        # --- [2] 상세 분석 (탭 메뉴) ---
+        tab1, tab2, tab3, tab4 = st.tabs(["🏛️ 궁성/성향", "💞 합(合) 분석", "⚡ 충/형/파/해", "⭐ 신살/공망"])
+
+        interactions = check_interactions(pillars)
+        gm = get_gongmang(d_g, d_j)
+
+        with tab1:
+            st.subheader("궁성론 (Pillar Analysis)")
+            st.info(f"**일주({d_g}{d_j})**: 나의 정체성입니다. {OHAENG_KR[OHAENG_MAP[d_g]]}의 기운을 가지고 태어났으며, 배우자 자리에 {ten_j}(이)가 있습니다.")
+            st.write(f"**월주({m_g}{m_j})**: 부모와 사회적 환경을 의미합니다. 내가 사회에서 쓰는 무기인 {get_sibseong(day_master, m_g)} 격국에 가깝습니다.")
             
-        with c2:
-            st.subheader("오행 분포")
-            all_c = [y_g, y_j, m_g, m_j, d_g, d_j, t_g, t_j]
-            cnt = {"목":0, "화":0, "토":0, "금":0, "수":0}
-            for c in all_c: cnt[OHAENG_KR[OHAENG_MAP[c]]] += 1
+        with tab2:
+            st.subheader("합 (Combination)")
+            if interactions['hap']:
+                for item in interactions['hap']:
+                    st.success(item)
+            else:
+                st.write("사주 원국에 뚜렷한 합이 없습니다.")
+                
+        with tab3:
+            st.subheader("충/형/파/해 (Conflict)")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write("**충 (Clash)**")
+                if interactions['chung']:
+                    for item in interactions['chung']: st.error(item)
+                else: st.write("충이 없습니다.")
+                
+                st.write("**원진 (Resentment)**")
+                if interactions['wonjin']:
+                    for item in interactions['wonjin']: st.warning(item)
+                else: st.write("원진이 없습니다.")
             
-            df_oh = pd.DataFrame({"오행":cnt.keys(), "개수":cnt.values(), "색상":["#51cf66","#ff6b6b","#fcc419","#adb5bd","#339af0"]})
+            with c2:
+                st.write("**형/파 (Punishment/Destruction)**")
+                if interactions['hyeong']:
+                    for item in interactions['hyeong']: st.warning(item)
+                if interactions['pa']:
+                    for item in interactions['pa']: st.info(item)
+                if not interactions['hyeong'] and not interactions['pa']:
+                    st.write("형/파가 없습니다.")
+
+        with tab4:
+            st.subheader("신살 및 공망")
+            st.error(f"🌫️ **공망 (Void)**: {gm[0]}, {gm[1]}")
+            st.caption("공망은 '비어있다'는 뜻으로, 해당 글자가 사주에 있다면 그 기능이 약화되거나 헛수고가 될 수 있음을 암시합니다.")
             
-            chart = alt.Chart(df_oh).mark_arc(innerRadius=60).encode(
-                theta=alt.Theta("개수", stack=True),
-                color=alt.Color("오행", scale=alt.Scale(domain=["목","화","토","금","수"], range=["#51cf66","#ff6b6b","#fcc419","#adb5bd","#339af0"]))
-            )
-            st.altair_chart(chart, use_container_width=True)
+            st.write("**주요 신살**")
+            # 전체 기둥 신살 체크
+            found_shinsal = False
+            for p in pillars:
+                ss = get_shinsal(d_j, p['j'])
+                if ss:
+                    st.write(f"- {p['name']}({p['j']}): **{ss}**")
+                    found_shinsal = True
+            if not found_shinsal: st.write("주요 신살(도화/역마/화개)이 원국에 없습니다.")
 
     else:
         st.error("데이터 조회 실패")
