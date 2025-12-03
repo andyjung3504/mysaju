@@ -4,128 +4,89 @@ import datetime
 import pandas as pd
 import altair as alt
 
-# --- [1] 페이지 설정 및 포스텔러 스타일 CSS 주입 ---
+# --- [1] 페이지 설정 및 포스텔러 스타일 CSS ---
 st.set_page_config(page_title="포스텔러 만세력", page_icon="🔮", layout="wide")
 
 st.markdown("""
 <style>
-    /* 1. 포스텔러가 사용하는 'Pretendard' 폰트 적용 */
+    /* 폰트 및 기본 설정 */
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
     
     html, body, [class*="css"] {
-        font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+        font-family: "Pretendard Variable", -apple-system, sans-serif;
     }
+    .stApp { background-color: #f4f5f7; }
 
-    /* 2. 전체 배경 및 레이아웃 */
-    .stApp {
-        background-color: #f4f5f7; /* 포스텔러 특유의 회색 배경 */
-    }
-    
-    /* 3. 메인 만세력 원국표 (카드 디자인) */
+    /* 메인 사주 카드 컨테이너 */
     .saju-card-container {
         display: flex;
         justify-content: space-between;
         background-color: #ffffff;
-        border-radius: 20px; /* 둥근 모서리 */
+        border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         padding: 24px 10px;
         margin-bottom: 20px;
+        flex-wrap: nowrap; /* 모바일에서도 가로 유지 */
+        overflow-x: auto;
     }
     
     .pillar-item {
         flex: 1;
+        min-width: 70px; /* 모바일 최소 너비 */
         text-align: center;
         position: relative;
+        padding: 0 4px;
     }
     
-    /* 기둥 사이 구분선 (점선) */
+    /* 구분선 */
     .pillar-item:not(:last-child)::after {
-        content: "";
-        position: absolute;
-        right: 0;
-        top: 10%;
-        height: 80%;
-        border-right: 1px dashed #e0e0e0;
+        content: ""; position: absolute; right: 0; top: 15%;
+        height: 70%; border-right: 1px dashed #e0e0e0;
     }
 
-    /* 헤더 (시주/일주...) */
-    .pillar-title {
-        font-size: 14px;
-        color: #8b95a1; /* 연한 회색 */
-        margin-bottom: 8px;
-        font-weight: 600;
+    /* 스타일 요소 */
+    .pillar-title { font-size: 13px; color: #8b95a1; margin-bottom: 6px; font-weight: 600; }
+    .ten-god-badge { 
+        display: inline-block; font-size: 11px; font-weight: 700; color: #fff;
+        background-color: #555; padding: 3px 6px; border-radius: 8px; margin: 4px 0;
     }
-    
-    /* 십성 (육친) 뱃지 */
-    .ten-god-badge {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 700;
-        color: #ffffff;
-        background-color: #555555;
-        padding: 4px 8px;
-        border-radius: 12px;
-        margin: 4px 0;
-    }
-    
-    /* 한자 영역 */
-    .hanja-container {
-        padding: 12px 0;
-    }
+    .hanja-container { padding: 8px 0; }
     .hanja-char {
-        font-family: "Noto Serif KR", serif; /* 명조체 느낌 */
-        font-size: 40px;
-        font-weight: 900;
-        line-height: 1.1;
+        font-family: "Noto Serif KR", serif;
+        font-size: 36px; font-weight: 900; line-height: 1.1;
     }
     
-    /* 오행 색상 (포스텔러 스타일) */
-    .wood { color: #52ba68; }  /* 초록 */
-    .fire { color: #ff6b6b; }  /* 빨강 */
-    .earth { color: #fcc419; } /* 노랑 */
-    .metal { color: #adb5bd; } /* 회색 */
-    .water { color: #339af0; } /* 파랑 */
+    /* 하단 정보 */
+    .bottom-info-box { margin-top: 6px; }
+    .jijanggan { font-size: 11px; color: #adb5bd; letter-spacing: -0.5px; margin-bottom: 2px; }
+    .unseong { font-size: 12px; color: #1c7ed6; font-weight: 700; display: block; }
+    .shinsal-txt { font-size: 11px; color: #fa5252; font-weight: 600; min-height: 15px;}
 
-    /* 하단 정보 (지장간, 운성, 신살) */
-    .bottom-info-box {
-        margin-top: 8px;
-    }
-    .jijanggan { font-size: 12px; color: #adb5bd; letter-spacing: 1px; margin-bottom: 4px; }
-    .unseong { font-size: 13px; color: #1c7ed6; font-weight: 700; display: block; }
-    .shinsal-txt { font-size: 12px; color: #fa5252; font-weight: 600; }
+    /* 오행 색상 */
+    .wood { color: #52ba68; } .fire { color: #ff6b6b; } .earth { color: #fcc419; } .metal { color: #adb5bd; } .water { color: #339af0; }
 
-    /* [섹션] 신살 태그 스타일 */
-    .tag-container {
-        background: white; border-radius: 16px; padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 16px;
-    }
-    .tag-pill {
-        display: inline-block; padding: 6px 14px; margin: 4px;
-        border-radius: 20px; font-size: 13px; font-weight: 700;
-    }
+    /* 신살 태그 */
+    .tag-container { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 16px; }
+    .tag-pill { display: inline-block; padding: 6px 12px; margin: 3px; border-radius: 20px; font-size: 12px; font-weight: 700; }
     .tp-good { background: #e3fafc; color: #1098ad; }
     .tp-bad { background: #fff5f5; color: #fa5252; }
     .tp-neu { background: #f1f3f5; color: #495057; }
 
-    /* [섹션] 그래프 스타일 */
-    .graph-box {
-        background: white; border-radius: 16px; padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    .stat-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: 600; }
-    .progress-bg { flex: 1; background: #f1f3f5; height: 10px; border-radius: 5px; margin: 0 12px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 5px; }
+    /* 그래프 */
+    .graph-box { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .stat-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+    .progress-bg { flex: 1; background: #f1f3f5; height: 8px; border-radius: 4px; margin: 0 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; }
 
-    /* [섹션] 하단 달력 박스 */
+    /* 달력 카드 */
     .cal-info-card {
         background: linear-gradient(135deg, #343a40 0%, #212529 100%);
         color: white; padding: 20px; border-radius: 16px;
-        display: flex; justify-content: space-around; align-items: center;
-        margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex; justify-content: space-around; align-items: center; margin-top: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .cal-sub { font-size: 12px; opacity: 0.7; margin-bottom: 4px; display: block; }
-    .cal-main { font-size: 18px; font-weight: 700; color: #ffe066; }
-
+    .cal-main { font-size: 16px; font-weight: 700; color: #ffe066; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -151,7 +112,7 @@ UNSEONG = {
     "癸":["건록","제왕","쇠","병","사","묘","절","태","양","장생","목욕","관대"]
 }
 
-# --- 3. 로직 함수 (기능 유지) ---
+# --- 3. 로직 함수 ---
 def calc_time_ji(h, m, loc_name):
     lon = LOCATIONS.get(loc_name, 127.0)
     corr = (lon - 135.0) * 4
@@ -172,55 +133,68 @@ def get_sibseong(day_gan, target):
         d_val = o_map[OHAENG[day_gan]]
         t_val = o_map[OHAENG[target]]
     except: return ""
-    
     d_pol = (GAN.index(day_gan) % 2)
     t_pol = (GAN.index(target) if target in GAN else JI.index(target)) % 2
-    
     same = (d_pol == t_pol)
     diff = (t_val - d_val) % 5
-    
     if diff == 0: return "비견" if same else "겁재"
     if diff == 1: return "식신" if same else "상관"
     if diff == 2: return "편재" if same else "정재"
     if diff == 3: return "편관" if same else "정관"
     if diff == 4: return "편인" if same else "정인"
 
-def get_shinsal(day_ji, target_ji):
-    if day_ji in "亥卯未": return "도화살" if target_ji=="子" else "역마살" if target_ji=="巳" else "화개살" if target_ji=="未" else ""
-    if day_ji in "寅午戌": return "도화살" if target_ji=="卯" else "역마살" if target_ji=="申" else "화개살" if target_ji=="戌" else ""
-    if day_ji in "巳酉丑": return "도화살" if target_ji=="午" else "역마살" if target_ji=="亥" else "화개살" if target_ji=="丑" else ""
-    if day_ji in "申子辰": return "도화살" if target_ji=="酉" else "역마살" if target_ji=="寅" else "화개살" if target_ji=="辰" else ""
+def get_shinsal_basic(day_ji, target_ji):
+    if day_ji in "亥卯未": return "도화" if target_ji=="子" else "역마" if target_ji=="巳" else "화개" if target_ji=="未" else ""
+    if day_ji in "寅午戌": return "도화" if target_ji=="卯" else "역마" if target_ji=="申" else "화개" if target_ji=="戌" else ""
+    if day_ji in "巳酉丑": return "도화" if target_ji=="午" else "역마" if target_ji=="亥" else "화개" if target_ji=="丑" else ""
+    if day_ji in "申子辰": return "도화" if target_ji=="酉" else "역마" if target_ji=="寅" else "화개" if target_ji=="辰" else ""
     return ""
 
 def get_full_shinsal(day_gan, day_ji, pillars):
     res = []
     jis = [p['j'] for p in pillars]
-    # 천을귀인
-    if day_gan in "甲戊庚":
-        if "丑" in jis or "未" in jis: res.append(("천을귀인", "good"))
-    elif day_gan in "乙己":
-        if "子" in jis or "申" in jis: res.append(("천을귀인", "good"))
-    elif day_gan in "丙丁":
-        if "亥" in jis or "酉" in jis: res.append(("천을귀인", "good"))
-    elif day_gan in "辛":
-        if "午" in jis or "寅" in jis: res.append(("천을귀인", "good"))
-    elif day_gan in "壬癸":
-        if "巳" in jis or "卯" in jis: res.append(("천을귀인", "good"))
-    
+    all_ganji = [p['g']+p['j'] for p in pillars]
+
+    # 1. 천을귀인
+    nobles = {'甲':['丑','未'], '戊':['丑','未'], '庚':['丑','未'], '乙':['子','申'], '己':['子','申'], '丙':['亥','酉'], '丁':['亥','酉'], '辛':['午','寅'], '壬':['巳','卯'], '癸':['巳','卯']}
+    if day_gan in nobles:
+        for n in nobles[day_gan]:
+            if n in jis: res.append(("천을귀인", "good"))
+
+    # 2. 괴강살 (경진, 경술, 임진, 임술, 무술)
+    goegang = ["庚辰", "庚戌", "壬辰", "壬戌", "戊戌"]
+    for gj in all_ganji:
+        if gj in goegang: res.append(("괴강살", "bad")); break
+            
+    # 3. 백호대살
     baekho = ["甲辰","乙未","丙戌","丁丑","戊辰","壬戌","癸丑"]
-    for p in pillars:
-        if p['g']+p['j'] in baekho: res.append(("백호대살", "bad")); break
+    for gj in all_ganji:
+        if gj in baekho: res.append(("백호대살", "bad")); break
     
+    # 4. 홍염살 (매력)
+    hongyeom = {"甲":["午"], "乙":["午"], "丙":["寅"], "丁":["未"], "戊":["辰"], "己":["辰"], "庚":["戌"], "辛":["酉"], "壬":["子"], "癸":["申"]}
+    if day_gan in hongyeom:
+        for h in hongyeom[day_gan]:
+            if h in jis: res.append(("홍염살", "good"))
+
+    # 5. 양인살 (강한 고집)
+    yangin = {"甲":["卯"], "庚":["酉"], "壬":["子"], "丙":["午"], "戊":["午"]}
+    if day_gan in yangin:
+        for y in yangin[day_gan]:
+            if y in jis: res.append(("양인살", "bad"))
+
+    # 6. 도화/역마/화개
     for p in pillars:
-        ss = get_shinsal(day_ji, p['j'])
-        if ss: res.append((ss, "neu"))
+        ss = get_shinsal_basic(day_ji, p['j'])
+        if ss: res.append((ss+"살", "neu"))
+        
     return list(set(res))
 
-def get_daewoon(y_g, m_g, m_j, gender, b_date):
+def get_daewoon(y_g, m_g, m_j, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    dw_num = 5 # 기본값
+    dw_num = 5 
     lst = []
     s_g, s_j = GAN.index(m_g), JI.index(m_j)
     for i in range(1, 9):
@@ -250,7 +224,7 @@ if 'run' in st.session_state and st.session_state.run:
         row = cur.fetchone()
         conn.close()
     except:
-        st.error("⚠️ DB 업데이트가 필요합니다. 20060818.sql 파일을 이용해 DB를 재생성해주세요.")
+        st.error("⚠️ DB가 없습니다. saju.db 파일을 업로드해주세요.")
         row = None
 
     if row:
@@ -263,29 +237,30 @@ if 'run' in st.session_state and st.session_state.run:
         t_g = get_time_gan(d_g, t_j)
         day_master = d_g
         
-        # 헤더
+        # [수정] 헤더 및 진태양시 정수 변환
         st.subheader(f"{name}님의 사주명식")
         st.caption(f"양력 {d.year}년 {d.month}월 {d.day}일 / 진태양시 {int(s_min//60):02d}:{int(s_min%60):02d}")
 
-        # --- [1] 원국표 (포스텔러 스타일 복각) ---
+        # [수정] 기둥 순서 변경: 연주(년) -> 월주(월) -> 일주(일) -> 시주(시)
         pillars = [
-            {"n":"시주", "r":"말년/자식", "g":t_g, "j":t_j},
-            {"n":"일주", "r":"본인/배우자", "g":d_g, "j":d_j},
+            {"n":"연주", "r":"국가/조상", "g":y_g, "j":y_j},
             {"n":"월주", "r":"사회/부모", "g":m_g, "j":m_j},
-            {"n":"연주", "r":"국가/조상", "g":y_g, "j":y_j}
+            {"n":"일주", "r":"본인/배우자", "g":d_g, "j":d_j},
+            {"n":"시주", "r":"자식/말년", "g":t_g, "j":t_j}
         ]
         
-        html = '<div class="saju-card-container">'
+        # HTML 생성 (들여쓰기 제거하여 버그 수정)
+        cards_html = ""
         for idx, p in enumerate(pillars):
-            t_top = "일간" if idx==1 else get_sibseong(day_master, p['g'])
+            t_top = "일간" if p['n']=="일주" else get_sibseong(day_master, p['g'])
             t_bot = get_sibseong(day_master, p['j'])
             c_g = OHAENG[p['g']]
             c_j = OHAENG[p['j']]
             un = UNSEONG[day_master][JI.index(p['j'])]
-            ss = get_shinsal(d_j, p['j'])
+            ss = get_shinsal_basic(d_j, p['j'])
             jj = JIJANG[p['j']].replace(""," ").strip()
             
-            html += f"""
+            cards_html += f"""
             <div class="pillar-item">
                 <div class="pillar-title">{p['n']}</div>
                 <div class="ten-god-badge">{t_top}</div>
@@ -299,12 +274,11 @@ if 'run' in st.session_state and st.session_state.run:
                     <span class="unseong">{un}</span>
                     <span class="shinsal-txt">{ss if ss else "-"}</span>
                 </div>
-            </div>
-            """
-        html += '</div>'
-        st.markdown(html, unsafe_allow_html=True)
+            </div>"""
 
-        # --- [2] 그래프 & 신살 (현대적 디자인) ---
+        st.markdown(f'<div class="saju-card-container">{cards_html}</div>', unsafe_allow_html=True)
+
+        # --- [2] 그래프 & 신살 ---
         c1, c2 = st.columns(2)
         chars = [p['g'] for p in pillars] + [p['j'] for p in pillars]
         cnt = {"목":0,"화":0,"토":0,"금":0,"수":0}
@@ -332,13 +306,12 @@ if 'run' in st.session_state and st.session_state.run:
         t1, t2 = st.tabs(["⚡ 관계 분석", "🌊 대운 흐름"])
         with t1:
             st.info("💡 합, 충, 형, 파, 해 분석 기능이 활성화되었습니다.")
-            # 상세 분석 로직 (공간상 생략, 필요시 추가)
         with t2:
-            dw, num, direct = get_daewoon(y_g, m_g, m_j, gender, d)
+            dw, num, direct = get_daewoon(y_g, m_g, m_j, gender)
             st.write(f"**대운수: {num} / {direct}**")
             st.dataframe(pd.DataFrame(dw).set_index("나이").T, use_container_width=True)
         
-        # --- [4] 달력 정보 (하단 카드) ---
+        # --- [4] 달력 정보 ---
         st.markdown(f"""
         <div class="cal-info-card">
             <div><span class="cal-sub">음력 날짜</span><span class="cal-main">{l_m}월 {l_d}일</span></div>
