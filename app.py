@@ -4,7 +4,7 @@ import datetime
 import pandas as pd
 import altair as alt
 
-# --- [1] 페이지 설정 및 스타일 (CSS) ---
+# --- [1] 페이지 설정 및 스타일 (CSS: 포스텔러 PDF 스타일 유지/강화) ---
 st.set_page_config(page_title="루나 만세력 Pro", page_icon="🌙", layout="wide")
 
 st.markdown("""
@@ -14,7 +14,7 @@ st.markdown("""
 
     html, body, .stApp {
         font-family: "Pretendard Variable", sans-serif;
-        background-color: #f5f7fa;
+        background-color: #f5f7fa; /* 포스텔러 배경톤 */
         color: #111;
     }
 
@@ -79,7 +79,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 데이터 및 로직 ---
+# --- 2. 데이터 및 로직 (기존 로직 유지) ---
 GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 JI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 OHAENG_MAP = {
@@ -193,22 +193,23 @@ with st.sidebar:
     name = st.text_input("이름", "사용자")
     gender = st.radio("성별", ["남자", "여자"])
     
-    # [수정] 날짜 상태값 고정 (에러 방지 핵심)
-    if 'dob' not in st.session_state:
-        st.session_state.dob = datetime.date(1990, 5, 5)
+    # [수정] Session State로 날짜 고정 (에러 방지 핵심)
+    if 'dob_fix' not in st.session_state:
+        st.session_state.dob_fix = datetime.date(1990, 5, 5)
         
-    d_input = st.date_input("생년월일", st.session_state.dob, min_value=datetime.date(1900,1,1))
-    st.session_state.dob = d_input
+    d_input = st.date_input("생년월일", st.session_state.dob_fix, min_value=datetime.date(1900,1,1))
+    st.session_state.dob_fix = d_input # 입력받은 값 저장
     
     t_time = st.time_input("태어난 시간", datetime.time(7, 0))
     loc = st.selectbox("출생 지역", list(LOCATIONS.keys()))
     
     if st.button("결과 확인", type="primary"):
-        st.session_state.run = True
+        st.session_state.run_analysis = True
 
-if 'run' in st.session_state and st.session_state.run:
-    # [수정] d 변수를 session_state에서 가져옴
-    d = st.session_state.dob
+# --- 4. 메인 로직 ---
+if 'run_analysis' in st.session_state and st.session_state.run_analysis:
+    # [중요] 저장된 날짜 변수 사용 (Scope Error 해결)
+    d = st.session_state.dob_fix
     
     try:
         conn = sqlite3.connect("saju.db")
@@ -332,9 +333,8 @@ if 'run' in st.session_state and st.session_state.run:
         dw_h += "</div>"
         st.markdown(dw_h, unsafe_allow_html=True)
 
-        # [6] 연운 Scroll
+        # [6] 연운 Scroll (에러 수정됨)
         st.markdown('<div class="sec-title">연운 (세운)</div>', unsafe_allow_html=True)
-        # [중요] d가 session_state에서 안전하게 로드되었으므로 여기서 에러 안 남
         seun_list = get_seun(d.year + 1)
         
         se_h = '<div class="scroll-wrap">'
@@ -350,7 +350,7 @@ if 'run' in st.session_state and st.session_state.run:
         se_h += "</div>"
         st.markdown(se_h, unsafe_allow_html=True)
 
-        # [7] 월운 Scroll
+        # [7] 월운 Scroll (월두법)
         st.markdown('<div class="sec-title">올해의 월운</div>', unsafe_allow_html=True)
         this_year = datetime.datetime.now().year
         seun_g_idx = (GAN.index("甲") + (this_year - 1984)) % 10
