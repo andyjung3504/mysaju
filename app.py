@@ -3,75 +3,66 @@ import sqlite3
 import datetime
 import pandas as pd
 
-# --- [1] 페이지 설정 및 루나 스타일 CSS ---
+# --- [1] 페이지 설정 및 스타일 ---
 st.set_page_config(page_title="루나 만세력", page_icon="🌙", layout="wide")
 
 st.markdown("""
 <style>
-    /* 폰트: 프리텐다드 */
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
     
     html, body, .stApp {
-        font-family: "Pretendard Variable", -apple-system, sans-serif;
-        background-color: #f0f2f5;
-        color: #333;
+        font-family: "Pretendard Variable", sans-serif;
+        background-color: #f7f9fc;
     }
 
-    /* 메인 컨테이너 */
-    .luna-container {
+    /* 카드 스타일 (개별 기둥) */
+    .pillar-card {
         background-color: #ffffff;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        padding: 30px 20px;
-        margin-bottom: 30px;
-        overflow-x: auto;
+        border-radius: 16px;
+        padding: 20px 5px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #e1e4e8;
+        height: 100%;
     }
 
-    /* 헤더 */
-    .header-box {
-        text-align: center; margin-bottom: 25px;
-        border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;
-    }
-    .user-name { font-size: 22px; font-weight: 800; color: #1a1a1a; }
-    .birth-info { font-size: 14px; color: #666; margin-top: 5px; }
-    .solar-time { font-size: 13px; color: #ff6b6b; font-weight: bold; }
-
-    /* 원국표 */
-    .pillars-wrapper {
-        display: flex; justify-content: space-around; text-align: center;
-    }
-    .pillar-col {
-        flex: 1; min-width: 70px; position: relative;
-    }
-    .pillar-col:not(:last-child)::after {
-        content: ""; position: absolute; right: 0; top: 10%;
-        height: 80%; border-right: 1px dashed #e0e0e0;
+    .pillar-header { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 8px; }
+    
+    .ten-god {
+        display: inline-block; font-size: 12px; font-weight: bold; color: #fff;
+        background-color: #495057; padding: 4px 10px; border-radius: 12px; margin: 5px 0;
     }
 
-    /* 요소 스타일 */
-    .pillar-label { font-size: 13px; color: #888; margin-bottom: 8px; font-weight: 600; }
-    
-    .ten-god-tag {
-        display: inline-block; font-size: 11px; font-weight: 700; color: #fff;
-        background-color: #5c5c5c; padding: 4px 8px; border-radius: 10px;
-        margin: 4px 0; min-width: 40px;
+    .hanja {
+        font-family: 'Noto Serif KR', serif;
+        font-size: 40px; font-weight: 900; line-height: 1.2;
+        padding: 10px 0;
     }
-    
-    .hanja-box { padding: 10px 0; }
-    .hanja { font-family: 'Noto Serif KR', serif; font-size: 38px; font-weight: 900; line-height: 1.2; }
-    
-    .detail-info { margin-top: 10px; }
-    .jijanggan { font-size: 11px; color: #aaa; letter-spacing: 1px; margin-bottom: 6px; min-height: 15px; }
-    .unseong { font-size: 13px; color: #339af0; font-weight: 800; margin-bottom: 4px; display: block; }
-    .shinsal { font-size: 12px; color: #fa5252; font-weight: 700; display: block; min-height: 18px; }
+
+    .bottom-info { margin-top: 10px; font-size: 12px; }
+    .jijang { color: #aaa; letter-spacing: 1px; margin-bottom: 5px; font-size: 11px; }
+    .unseong { color: #1c7ed6; font-weight: bold; font-size: 13px; margin-bottom: 3px; }
+    .shinsal { color: #e03131; font-weight: bold; min-height: 18px; }
 
     /* 오행 색상 */
-    .wood { color: #52ba68; } .fire { color: #ff6b6b; } .earth { color: #fcc419; } .metal { color: #adb5bd; } .water { color: #343a40; }
-    
-    /* 탭 스타일 */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
-    .stTabs [data-baseweb="tab"] { background-color: #fff; border-radius: 8px; padding: 10px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stTabs [aria-selected="true"] { background-color: #e3fafc; color: #0c8599; font-weight: bold; }
+    .wood { color: #4CAF50; } .fire { color: #E91E63; } .earth { color: #FFC107; } .metal { color: #9E9E9E; } .water { color: #2196F3; }
+
+    /* 헤더 박스 */
+    .header-box {
+        background: white; padding: 20px; border-radius: 16px; text-align: center;
+        margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .main-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+    .sub-info { font-size: 14px; color: #666; }
+
+    /* 그래프 및 태그 */
+    .analysis-box {
+        background: white; padding: 20px; border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); height: 100%;
+    }
+    .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .bar-bg { flex: 1; background: #eee; height: 8px; border-radius: 4px; margin: 0 10px; }
+    .bar-fill { height: 100%; border-radius: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -82,10 +73,7 @@ OHAENG_MAP = {
     "甲":"wood","乙":"wood","丙":"fire","丁":"fire","戊":"earth","己":"earth","庚":"metal","辛":"metal","壬":"water","癸":"water",
     "寅":"wood","卯":"wood","巳":"fire","午":"fire","辰":"earth","戌":"earth","丑":"earth","未":"earth","申":"metal","酉":"metal","亥":"water","子":"water"
 }
-
-# [수정] 누락되었던 변수 추가 완료!
 KR_OH = {"wood":"목", "fire":"화", "earth":"토", "metal":"금", "water":"수"}
-
 LOCATIONS = {"서울":127.0, "부산":129.1, "대구":128.6, "인천":126.7, "광주":126.8, "대전":127.4, "울산":129.3, "강릉":128.9, "제주":126.5}
 
 JIJANGGAN = {
@@ -106,7 +94,6 @@ UNSEONG_TABLE = {
 }
 
 # --- 3. 로직 함수 ---
-
 def calc_solar_time(h, m, loc):
     lon = LOCATIONS.get(loc, 127.0)
     diff = (lon - 135.0) * 4
@@ -141,42 +128,26 @@ def get_sibseong(day_gan, target):
     if diff == 4: return "편인" if same else "정인"
 
 def get_shinsal(day_ji, target_ji):
-    # 삼합 기준 약식 구현
-    if day_ji in "亥卯未":
-        if target_ji == "子": return "년살(도화)"
-        if target_ji == "酉": return "재살"
-        if target_ji == "巳": return "역마살"
-    if day_ji in "寅午戌":
-        if target_ji == "卯": return "년살(도화)"
-        if target_ji == "子": return "재살"
-        if target_ji == "申": return "역마살"
-    if day_ji in "巳酉丑":
-        if target_ji == "午": return "년살(도화)"
-        if target_ji == "卯": return "재살"
-        if target_ji == "亥": return "역마살"
-    if day_ji in "申子辰":
-        if target_ji == "酉": return "년살(도화)"
-        if target_ji == "午": return "재살"
-        if target_ji == "寅": return "역마살"
+    if day_ji in "亥卯未": return "도화" if target_ji=="子" else "역마" if target_ji=="巳" else "화개" if target_ji=="未" else ""
+    if day_ji in "寅午戌": return "도화" if target_ji=="卯" else "역마" if target_ji=="申" else "화개" if target_ji=="戌" else ""
+    if day_ji in "巳酉丑": return "도화" if target_ji=="午" else "역마" if target_ji=="亥" else "화개" if target_ji=="丑" else ""
+    if day_ji in "申子辰": return "도화" if target_ji=="酉" else "역마" if target_ji=="寅" else "화개" if target_ji=="辰" else ""
     return ""
 
 def get_daewoon(y_g, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    return 4, "순행" if fwd else "역행" # 대운수 예시
+    return 4, "순행" if fwd else "역행"
 
 # --- 4. UI 실행 ---
 with st.sidebar:
     st.title("🌙 루나 만세력")
-    st.info("정확한 사주 분석을 위해 정보를 입력해주세요.")
-    
     name = st.text_input("이름", "홍길동")
     gender = st.radio("성별", ["남자", "여자"])
     d = st.date_input("생년월일", datetime.date(1990, 5, 5), min_value=datetime.date(1900,1,1))
-    t_time = st.time_input("태어난 시간", datetime.time(11, 28))
+    t_time = st.time_input("태어난 시간", datetime.time(10, 56))
     loc = st.selectbox("출생 지역", list(LOCATIONS.keys()))
-    
     if st.button("분석하기", type="primary"):
         st.session_state.run = True
 
@@ -184,15 +155,15 @@ if 'run' in st.session_state and st.session_state.run:
     try:
         conn = sqlite3.connect("saju.db")
         cur = conn.cursor()
-        cur.execute("SELECT cd_hyganjee, cd_kyganjee, cd_dyganjee FROM calenda_data WHERE cd_sy=? AND cd_sm=? AND cd_sd=?", (d.year, str(d.month), str(d.day)))
+        cur.execute("SELECT cd_hyganjee, cd_kyganjee, cd_dyganjee, cd_lm, cd_ld, cd_terms FROM calenda_data WHERE cd_sy=? AND cd_sm=? AND cd_sd=?", (d.year, str(d.month), str(d.day)))
         row = cur.fetchone()
         conn.close()
     except:
-        st.error("⚠️ saju.db 파일이 없습니다.")
+        st.error("⚠️ DB 오류: saju.db 파일이 없습니다.")
         st.stop()
 
     if row:
-        y_gj, m_gj, d_gj = row
+        y_gj, m_gj, d_gj, l_m, l_d, term = row
         y_g, y_j = y_gj[0], y_gj[1]
         m_g, m_j = m_gj[0], m_gj[1]
         d_g, d_j = d_gj[0], d_gj[1]
@@ -201,27 +172,27 @@ if 'run' in st.session_state and st.session_state.run:
         t_g = get_time_gan(d_g, t_j)
         day_master = d_g
         
-        # 화면 구성
-        st.markdown(f'<div class="luna-container">', unsafe_allow_html=True)
-        
+        # [1] 헤더 정보
         st.markdown(f"""
         <div class="header-box">
-            <div class="user-name">{name}님의 사주명식</div>
-            <div class="birth-info">양력 {d.year}년 {d.month}월 {d.day}일 / {gender}</div>
-            <div class="solar-time">진태양시 {int(t_min//60):02d}:{int(t_min%60):02d} ({t_j}시)</div>
+            <div class="main-title">{name}님의 사주명식</div>
+            <div class="sub-info">양력 {d.year}.{d.month}.{d.day} ({gender}) / 진태양시 {int(t_min//60):02d}:{int(t_min%60):02d}</div>
         </div>
         """, unsafe_allow_html=True)
 
+        # [2] 원국표 (안전한 st.columns 사용 - 코드 노출 방지)
+        # 순서: 연주(년) -> 월주(월) -> 일주(일) -> 시주(시)
         pillars = [
-            {"n":"시주", "g":t_g, "j":t_j},
-            {"n":"일주", "g":d_g, "j":d_j},
+            {"n":"연주", "g":y_g, "j":y_j},
             {"n":"월주", "g":m_g, "j":m_j},
-            {"n":"연주", "g":y_g, "j":y_j}
+            {"n":"일주", "g":d_g, "j":d_j},
+            {"n":"시주", "g":t_g, "j":t_j}
         ]
         
-        html = '<div class="pillars-wrapper">'
-        for idx, p in enumerate(pillars):
-            t_top = "일간" if idx==1 else get_sibseong(day_master, p['g'])
+        cols = st.columns(4)
+        for i, col in enumerate(cols):
+            p = pillars[i]
+            t_top = "일간" if p['n']=="일주" else get_sibseong(day_master, p['g'])
             t_bot = get_sibseong(day_master, p['j'])
             c_g = OHAENG_MAP[p['g']]
             c_j = OHAENG_MAP[p['j']]
@@ -229,48 +200,70 @@ if 'run' in st.session_state and st.session_state.run:
             ss = get_shinsal(d_j, p['j'])
             jj = JIJANGGAN[p['j']]
             
-            html += f"""
-            <div class="pillar-col">
-                <div class="pillar-label">{p['n']}</div>
-                <span class="ten-god-tag">{t_top}</span>
-                <div class="hanja-box">
+            with col:
+                st.markdown(f"""
+                <div class="pillar-card">
+                    <div class="pillar-header">{p['n']}</div>
+                    <span class="ten-god">{t_top}</span>
                     <div class="hanja {c_g}">{p['g']}</div>
                     <div class="hanja {c_j}">{p['j']}</div>
+                    <span class="ten-god">{t_bot}</span>
+                    <div class="bottom-info">
+                        <div class="jijang">{jj}</div>
+                        <div class="unseong">{un}</div>
+                        <div class="shinsal">{ss if ss else "-"}</div>
+                    </div>
                 </div>
-                <span class="ten-god-tag">{t_bot}</span>
-                <div class="detail-info">
-                    <div class="jijanggan">{jj}</div>
-                    <span class="unseong">{un}</span>
-                    <span class="shinsal">{ss}</span>
-                </div>
-            </div>
-            """
-        html += '</div></div>'
-        st.markdown(html, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+
+        # [3] 그래프 및 분석
+        st.write("")
+        c1, c2 = st.columns([1, 1])
         
-        t1, t2, t3 = st.tabs(["📊 오행/십성", "⚡ 합충분석", "🌊 대운흐름"])
-        
-        with t1:
+        with c1:
             all_char = [p['g'] for p in pillars] + [p['j'] for p in pillars]
             cnt = {"목":0,"화":0,"토":0,"금":0,"수":0}
             for c in all_char: cnt[KR_OH[OHAENG_MAP[c]]] += 1
             
-            st.write("**오행 분포**")
-            cols = st.columns(5)
-            for i, (k, v) in enumerate(cnt.items()):
-                cols[i].metric(k, f"{v}개", f"{int(v/8*100)}%")
-                
-        with t2:
-            st.info("원국 내 합(合)과 충(冲) 분석 결과가 표시됩니다.")
+            st.markdown('<div class="analysis-box"><b>📊 오행 분포</b><br><br>', unsafe_allow_html=True)
+            for k, color in [("목","#4CAF50"),("화","#E91E63"),("토","#FFC107"),("금","#9E9E9E"),("수","#2196F3")]:
+                pct = (cnt[k]/8)*100
+                st.markdown(f"""
+                <div class="bar-row">
+                    <span style="width:30px;">{k}</span>
+                    <div class="bar-bg"><div class="bar-fill" style="width:{pct}%; background:{color}"></div></div>
+                    <span style="width:40px; text-align:right;">{int(pct)}%</span>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             
-        with t3:
+        with c2:
             num, direct = get_daewoon(y_g, gender)
-            st.write(f"**대운수: {num} ({direct})**")
-            dw_data = pd.DataFrame({
-                "나이": [num + 10*i for i in range(8)],
-                "간지": ["예시" for _ in range(8)]
-            }).set_index("나이").T
-            st.dataframe(dw_data)
+            st.markdown(f'<div class="analysis-box"><b>🌊 대운 흐름 (대운수 {num})</b><br><br>', unsafe_allow_html=True)
+            
+            # 대운표 생성
+            dw_list = []
+            s_g_idx = GAN.index(m_g)
+            s_j_idx = JI.index(m_j)
+            is_fwd = (direct == "순행")
+            
+            for k in range(1, 9):
+                step = k if is_fwd else -k
+                ng = GAN[(s_g_idx + step) % 10]
+                nj = JI[(s_j_idx + step) % 12]
+                dw_list.append(f"{ng}{nj}")
+            
+            dw_df = pd.DataFrame([dw_list], columns=[num + 10*k for k in range(8)], index=["간지"])
+            st.dataframe(dw_df, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+        # [4] 탭
+        st.write("")
+        t1, t2 = st.tabs(["⚡ 합/충 분석", "📅 달력 정보"])
+        with t1:
+            st.info("💡 천간합, 지지합, 형충파해 분석 결과가 여기에 표시됩니다.")
+        with t2:
+            st.success(f"음력: {l_m}월 {l_d}일 / 절기: {term if term else '없음'}")
 
     else:
-        st.error("해당 날짜의 데이터가 DB에 없습니다.")
+        st.error("데이터 조회 실패")
