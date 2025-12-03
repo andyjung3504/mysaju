@@ -165,7 +165,7 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    dw_num = 6 # 예시 값
+    dw_num = 6 
     
     lst = []
     s_g, s_j = GAN.index(m_g), JI.index(m_j)
@@ -236,100 +236,83 @@ if 'run' in st.session_state and st.session_state.run:
                 "g": p['g'], "j": p['j']
             })
 
-        table_html = f"""
-        <div class="card-box">
-            <table class="saju-table">
-                <thead>
-                    <tr>
-                        <th></th><th>생시</th><th>생일</th><th>생월</th><th>생년</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="label-cell">천간</td>
-                        <td class=""><div class="txt-gan {pd_data[0]['g_col']}">{pd_data[0]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd_data[1]['g_col']}">{pd_data[1]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd_data[2]['g_col']}">{pd_data[2]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd_data[3]['g_col']}">{pd_data[3]['g']}</div></td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">십성</td>
-                        <td><span class="badge">{pd_data[0]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[1]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[2]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[3]['g_ten']}</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">지지</td>
-                        <td><div class="txt-ji {pd_data[0]['j_col']}">{pd_data[0]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd_data[1]['j_col']}">{pd_data[1]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd_data[2]['j_col']}">{pd_data[2]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd_data[3]['j_col']}">{pd_data[3]['j']}</div></td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">십성</td>
-                        <td><span class="badge">{pd_data[0]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[1]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[2]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd_data[3]['j_ten']}</span></td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">지장간</td>
-                        <td style="font-size:11px; color:#aaa;">{pd_data[0]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[1]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[2]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[3]['jj']}</td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">12운성</td>
-                        <td style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[0]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[1]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[2]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[3]['un']}</td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">12신살</td>
-                        <td style="color:#fa5252; font-size:12px;">{pd_data[0]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[1]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[2]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[3]['ss']}</td>
-                    </tr>
-                    <tr class="fortune-row">
-                        <td class="label-cell">운세</td>
-                        <td><span class="fortune-title">말년운</span><span class="fortune-desc">자녀,결실</span></td>
-                        <td class="border-left"><span class="fortune-title">중년운</span><span class="fortune-desc">자아,정체성</span></td>
-                        <td class="border-left"><span class="fortune-title">청년운</span><span class="fortune-desc">부모,사회</span></td>
-                        <td class="border-left"><span class="fortune-title">초년운</span><span class="fortune-desc">조상,유년</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        """
+        # [수정] 들여쓰기 제거된 깔끔한 HTML 문자열
+        table_html = f"""<div class="card-box">
+<table class="saju-table">
+<thead><tr><th></th><th>생시</th><th>생일</th><th>생월</th><th>생년</th></tr></thead>
+<tbody>
+<tr>
+<td class="label-cell">천간</td>
+<td><div class="txt-gan {pd_data[0]['g_col']}">{pd_data[0]['g']}</div></td>
+<td class="border-left"><div class="txt-gan {pd_data[1]['g_col']}">{pd_data[1]['g']}</div></td>
+<td class="border-left"><div class="txt-gan {pd_data[2]['g_col']}">{pd_data[2]['g']}</div></td>
+<td class="border-left"><div class="txt-gan {pd_data[3]['g_col']}">{pd_data[3]['g']}</div></td>
+</tr>
+<tr>
+<td class="label-cell">십성</td>
+<td><span class="badge">{pd_data[0]['g_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[1]['g_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[2]['g_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[3]['g_ten']}</span></td>
+</tr>
+<tr>
+<td class="label-cell">지지</td>
+<td><div class="txt-ji {pd_data[0]['j_col']}">{pd_data[0]['j']}</div></td>
+<td class="border-left"><div class="txt-ji {pd_data[1]['j_col']}">{pd_data[1]['j']}</div></td>
+<td class="border-left"><div class="txt-ji {pd_data[2]['j_col']}">{pd_data[2]['j']}</div></td>
+<td class="border-left"><div class="txt-ji {pd_data[3]['j_col']}">{pd_data[3]['j']}</div></td>
+</tr>
+<tr>
+<td class="label-cell">십성</td>
+<td><span class="badge">{pd_data[0]['j_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[1]['j_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[2]['j_ten']}</span></td>
+<td class="border-left"><span class="badge">{pd_data[3]['j_ten']}</span></td>
+</tr>
+<tr>
+<td class="label-cell">지장간</td>
+<td style="font-size:11px; color:#aaa;">{pd_data[0]['jj']}</td>
+<td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[1]['jj']}</td>
+<td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[2]['jj']}</td>
+<td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[3]['jj']}</td>
+</tr>
+<tr>
+<td class="label-cell">12운성</td>
+<td style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[0]['un']}</td>
+<td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[1]['un']}</td>
+<td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[2]['un']}</td>
+<td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[3]['un']}</td>
+</tr>
+<tr>
+<td class="label-cell">12신살</td>
+<td style="color:#fa5252; font-size:12px;">{pd_data[0]['ss']}</td>
+<td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[1]['ss']}</td>
+<td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[2]['ss']}</td>
+<td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[3]['ss']}</td>
+</tr>
+<tr class="fortune-row">
+<td class="label-cell">운세</td>
+<td><span class="fortune-title">말년운</span><span class="fortune-desc">자녀,결실</span></td>
+<td class="border-left"><span class="fortune-title">중년운</span><span class="fortune-desc">자아,정체성</span></td>
+<td class="border-left"><span class="fortune-title">청년운</span><span class="fortune-desc">부모,사회</span></td>
+<td class="border-left"><span class="fortune-title">초년운</span><span class="fortune-desc">조상,유년</span></td>
+</tr>
+</tbody></table></div>"""
         st.markdown(table_html, unsafe_allow_html=True)
 
         # [2] 신살과 길성
         st.subheader("⭐ 신살과 길성")
-        st.markdown("""
-        <div class="card-box">
-            <table class="shinsal-table">
-                <tr><th>구분</th><th>생시</th><th>생일</th><th>생월</th><th>생년</th></tr>
-                <tr>
-                    <td>천간</td><td>-</td><td>현침살</td><td>현침살</td><td>백호대살</td>
-                </tr>
-                <tr>
-                    <td>지지</td><td>도화살</td><td>홍염살</td><td>태극귀인</td><td>천을귀인</td>
-                </tr>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="card-box"><table class="shinsal-table">
+<tr><th>구분</th><th>생시</th><th>생일</th><th>생월</th><th>생년</th></tr>
+<tr><td>천간</td><td>-</td><td>현침살</td><td>현침살</td><td>백호대살</td></tr>
+<tr><td>지지</td><td>도화살</td><td>홍염살</td><td>태극귀인</td><td>천을귀인</td></tr>
+</table></div>""", unsafe_allow_html=True)
 
-        # [3] 그래프 (오행) - [수정] list() 변환으로 AttributeError 방지
+        # [3] 그래프
         c1, c2 = st.columns(2)
         all_char = [p['g'] for p in pillars] + [p['j'] for p in pillars]
         cnt = {"목":0,"화":0,"토":0,"금":0,"수":0}
         for c in all_char: cnt[KR_OH[OHAENG_MAP[c]]] += 1
-        
-        # [중요] list() 로 감싸서 변환
         df_oh = pd.DataFrame({"category": list(cnt.keys()), "value": list(cnt.values())})
         
         base = alt.Chart(df_oh).encode(theta=alt.Theta("value", stack=True))
@@ -350,35 +333,25 @@ if 'run' in st.session_state and st.session_state.run:
             st.write("용신: 금(억부용신) / 희신: 수")
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # [4] 대운 (스크롤 방식)
+        # [4] 대운
         dw_list, dw_num = get_daewoon_full(y_g, m_g, m_j, gender)
-        
         st.subheader(f"🌊 대운 (대운수: {dw_num})")
         
-        # 대운 HTML 생성
+        # [수정] 반복문 내 공백 제거된 HTML 문자열 생성
         dw_html_content = ""
         for d in dw_list:
             g_ten = get_sibseong(day_master, d['gan'])
             j_ten = get_sibseong(day_master, d['ji'])
             un = UNSEONG[day_master][JI.index(d['ji'])]
+            dw_html_content += f"""<div class="dw-block">
+<div class="dw-age">{d['age']}</div>
+<span class="dw-ten">{g_ten}</span>
+<div class="dw-ganji">{d['gan']}<br>{d['ji']}</div>
+<span class="dw-ten">{j_ten}</span>
+<div style="font-size:11px; color:#339af0; margin-top:4px;">{un}</div>
+</div>"""
             
-            dw_html_content += f"""
-            <div class="dw-block">
-                <div class="dw-age">{d['age']}</div>
-                <span class="dw-ten">{g_ten}</span>
-                <div class="dw-ganji">{d['gan']}<br>{d['ji']}</div>
-                <span class="dw-ten">{j_ten}</span>
-                <div style="font-size:11px; color:#339af0; margin-top:4px;">{un}</div>
-            </div>
-            """
-            
-        st.markdown(f"""
-        <div class="card-box">
-            <div class="daewoon-scroll">
-                {dw_html_content}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="card-box"><div class="daewoon-scroll">{dw_html_content}</div></div>', unsafe_allow_html=True)
 
     else:
         st.error("데이터가 없습니다.")
