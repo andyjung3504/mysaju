@@ -4,59 +4,54 @@ import datetime
 import pandas as pd
 import altair as alt
 
-# --- 1. 페이지 설정 및 CSS (앱 디자인) ---
+# --- 1. 페이지 설정 및 CSS (디자인) ---
 st.set_page_config(page_title="AI 프로 만세력", page_icon="🔮", layout="wide")
 
 st.markdown("""
 <style>
-    .stApp { background-color: #f7f8fa; }
+    .stApp { background-color: #f7f9fc; }
     
-    /* [1] 사주 원국 카드 */
+    /* [1] 메인 사주 카드 디자인 */
     .pillar-card {
-        background-color: white; border-radius: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        border: 1px solid #eee; padding: 10px 5px; text-align: center;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e1e4e8;
+        padding: 0; margin: 4px;
+        text-align: center;
+        overflow: hidden;
     }
-    .card-header { font-size: 14px; color: #888; font-weight: bold; margin-bottom: 5px; }
-    .ten-god-label { font-size: 12px; background: #f1f3f5; color: #495057; padding: 3px 8px; border-radius: 10px; font-weight: bold; display: inline-block; margin: 2px 0;}
-    .hanja { font-family: 'Serif'; font-size: 38px; font-weight: 900; line-height: 1.1; margin: 5px 0; }
+    .card-header {
+        background-color: #495057; color: white;
+        font-size: 14px; font-weight: bold; padding: 8px 0;
+    }
+    .ten-god-top { font-size: 13px; font-weight: bold; color: #333; background-color: #e9ecef; padding: 4px; border-bottom: 1px dashed #dee2e6; }
+    .hanja-area { padding: 15px 0; }
+    .hanja { font-family: 'Serif'; font-size: 40px; font-weight: 900; line-height: 1.2; margin: 2px 0; }
+    .ten-god-bottom { font-size: 13px; font-weight: bold; color: #333; background-color: #f8f9fa; padding: 4px; border-top: 1px dashed #dee2e6; }
     
-    /* [2] 신살/길성 태그 스타일 */
-    .shinsal-box {
-        background-color: white; border-radius: 15px; padding: 20px;
-        margin-top: 15px; border: 1px solid #e0e0e0;
-    }
-    .shinsal-tag {
-        display: inline-block;
-        padding: 6px 14px;
-        margin: 4px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: bold;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-    .tag-good { background-color: #e6fcf5; color: #0ca678; border: 1px solid #c3fae8; } /* 길성 (초록) */
-    .tag-bad { background-color: #fff5f5; color: #fa5252; border: 1px solid #ffc9c9; } /* 흉살 (빨강) */
-    .tag-neutral { background-color: #f8f9fa; color: #495057; border: 1px solid #dee2e6; } /* 기타 (회색) */
+    /* 하단 정보 박스 (지장간, 12운성, 신살) */
+    .bottom-info { font-size: 12px; padding: 8px; background-color: #fff; border-top: 1px solid #eee; }
+    .jijanggan { color: #868e96; letter-spacing: 2px; margin-bottom: 4px; font-size: 11px; }
+    .unseong { color: #1c7ed6; font-weight: bold; display: block; margin-bottom: 2px;}
+    .shinsal { color: #e03131; font-weight: bold; font-size: 11px; }
 
-    /* [3] 오행/십성 분석 박스 */
-    .analysis-card {
-        background-color: white; border-radius: 15px; padding: 20px;
-        margin-top: 10px; border: 1px solid #e0e0e0;
+    /* [2] 탭 및 상세 분석 스타일 */
+    .interaction-box {
+        background-color: white; border-radius: 10px; padding: 15px;
+        margin-bottom: 10px; border-left: 5px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
-    .stat-label { font-weight: bold; width: 60px; }
-    .stat-bar-bg { flex-grow: 1; background-color: #f1f3f5; height: 10px; border-radius: 5px; margin: 0 10px; overflow: hidden; }
-    .stat-bar-fill { height: 100%; border-radius: 5px; }
-    .stat-value { font-weight: bold; color: #555; width: 40px; text-align: right; }
-
+    .box-hap { border-left-color: #4CAF50; }
+    .box-chung { border-left-color: #F44336; }
+    .box-wonjin { border-left-color: #FF9800; }
+    .box-gongmang { border-left-color: #9E9E9E; }
+    
     /* 오행 색상 */
     .wood { color: #4CAF50; } .fire { color: #E91E63; } .earth { color: #FFC107; } .metal { color: #9E9E9E; } .water { color: #2196F3; }
-    .bg-wood { background-color: #4CAF50; } .bg-fire { background-color: #E91E63; } .bg-earth { background-color: #FFC107; } .bg-metal { background-color: #9E9E9E; } .bg-water { background-color: #2196F3; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 상수 데이터 ---
+# --- 2. 기초 데이터 ---
 GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 JI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 OHAENG_MAP = {
@@ -69,14 +64,44 @@ OHAENG_MAP = {
 OHAENG_KR = {"wood":"목", "fire":"화", "earth":"토", "metal":"금", "water":"수"}
 LOCATIONS = {"서울/경기": 127.0, "강원(강릉)": 128.9, "대전/충남": 127.4, "광주/전남": 126.8, "부산/경남": 129.1, "제주": 126.5}
 
-# --- 3. 핵심 로직 ---
+# 지장간/12운성
+JIJANGGAN = {
+    "子": "壬 癸", "丑": "癸 辛 己", "寅": "戊 丙 甲", "卯": "甲 乙",
+    "辰": "乙 癸 戊", "巳": "戊 庚 丙", "午": "丙 己 丁", "未": "丁 乙 己",
+    "申": "戊 壬 庚", "酉": "庚 辛", "戌": "辛 丁 戊", "亥": "戊 甲 壬"
+}
+UNSEONG_TABLE = {
+    "甲": ["목욕","관대","건록","제왕","쇠","병","사","묘","절","태","양","장생"], 
+    "乙": ["병","쇠","제왕","건록","관대","목욕","장생","양","태","절","묘","사"],
+    "丙": ["태","양","장생","목욕","관대","건록","제왕","쇠","병","사","묘","절"],
+    "丁": ["절","묘","사","병","쇠","제왕","건록","관대","목욕","장생","양","태"],
+    "戊": ["태","양","장생","목욕","관대","건록","제왕","쇠","병","사","묘","절"],
+    "己": ["절","묘","사","병","쇠","제왕","건록","관대","목욕","장생","양","태"],
+    "庚": ["사","묘","절","태","양","장생","목욕","관대","건록","제왕","쇠","병"],
+    "辛": ["장생","양","태","절","묘","사","병","쇠","제왕","건록","관대","목욕"],
+    "壬": ["제왕","쇠","병","사","묘","절","태","양","장생","목욕","관대","건록"],
+    "癸": ["건록","제왕","쇠","병","사","묘","절","태","양","장생","목욕","관대"]
+}
+
+# --- [상세 분석용 데이터] 합/충/형/파/해 ---
+CHEONGAN_HAP = {"甲己":"토", "乙庚":"금", "丙辛":"수", "丁壬":"목", "戊癸":"화"}
+CHEONGAN_CHUNG = ["甲庚", "甲戊", "乙辛", "乙己", "丙壬", "丙庚", "丁癸", "丁辛", "戊壬", "己癸"]
+JIJI_YUKHAP = {"子丑":"토", "寅亥":"목", "卯戌":"화", "辰酉":"금", "巳申":"수", "午未":"화"}
+JIJI_SAMHAP = {"申子辰":"수국", "亥卯未":"목국", "寅午戌":"화국", "巳酉丑":"금국"}
+JIJI_BANGHAP = {"寅卯辰":"목국", "巳午未":"화국", "申酉戌":"금국", "亥子丑":"수국"}
+JIJI_CHUNG = ["子午", "丑未", "寅申", "卯酉", "辰戌", "巳亥"]
+JIJI_WONJIN = ["子未", "丑午", "寅酉", "卯申", "辰亥", "巳戌"]
+JIJI_HYEONG = ["寅巳", "巳申", "申寅", "丑戌", "戌未", "未丑", "子卯", "辰辰", "午午", "酉酉", "亥亥"]
+JIJI_PA = ["子酉", "丑辰", "寅亥", "卯午", "巳申", "戌未"]
+
+# --- 3. 로직 함수 ---
 
 def calculate_time_ji(hour, minute, location_name):
     correction = (LOCATIONS.get(location_name, 127.0) - 135.0) * 4
     total_min = hour * 60 + minute + correction
     if total_min < 0: total_min += 1440
     if total_min >= 1440: total_min -= 1440
-    return JI[int((total_min + 60) // 120) % 12]
+    return JI[int((total_min + 60) // 120) % 12], total_min
 
 def get_time_pillar_gan(day_gan, time_ji):
     if time_ji not in JI: return "甲"
@@ -98,55 +123,76 @@ def get_sibseong(day_gan, target):
     if diff == 3: return "편관" if same_yy else "정관"
     if diff == 4: return "편인" if same_yy else "정인"
 
-# [NEW] 확장된 신살/길성 로직
-def get_comprehensive_shinsal(day_gan, day_ji, pillars):
-    shinsals = []
-    
-    # 1. 지지 글자 수집
+def get_unseong(day_gan, target_ji):
+    return UNSEONG_TABLE[day_gan][JI.index(target_ji)] if target_ji in JI else ""
+
+def get_shinsal(day_ji, target_ji):
+    if day_ji in ["亥","卯","未"] and target_ji == "子": return "도화살"
+    if day_ji in ["寅","午","戌"] and target_ji == "卯": return "도화살"
+    if day_ji in ["巳","酉","丑"] and target_ji == "午": return "도화살"
+    if day_ji in ["申","子","辰"] and target_ji == "酉": return "도화살"
+    if target_ji in ["辰","戌","丑","未"]: return "화개살"
+    if target_ji in ["寅","申","巳","亥"]: return "역마살"
+    return ""
+
+def get_gongmang(day_gan, day_ji):
+    """공망 계산"""
+    res = JI.index(day_ji) - GAN.index(day_gan)
+    if res < 0: res += 12
+    return [JI[res], JI[(res+1)%12]]
+
+def analyze_interactions(pillars):
+    """합/충/형/파/해 상세 분석"""
+    gans = [p['g'] for p in pillars]
     jis = [p['j'] for p in pillars]
-    
-    # 천을귀인 (길성)
-    if day_gan in ['甲', '戊', '庚']: 
-        if '丑' in jis or '未' in jis: shinsals.append(("천을귀인", "good"))
-    elif day_gan in ['乙', '己']: 
-        if '子' in jis or '申' in jis: shinsals.append(("천을귀인", "good"))
-    elif day_gan in ['丙', '丁']: 
-        if '亥' in jis or '酉' in jis: shinsals.append(("천을귀인", "good"))
-    elif day_gan in ['辛']: 
-        if '午' in jis or '寅' in jis: shinsals.append(("천을귀인", "good"))
-    elif day_gan in ['壬', '癸']: 
-        if '巳' in jis or '卯' in jis: shinsals.append(("천을귀인", "good"))
+    names = ["시", "일", "월", "연"]
+    log = {"hap": [], "chung": [], "etc": []}
 
-    # 백호대살 (흉살/강한힘) - 일주/연주 등 기둥 자체 체크 필요하나 여기선 간략히
-    baekho_list = ["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"]
-    for p in pillars:
-        ganji = f"{p['g']}{p['j']}"
-        if ganji in baekho_list: shinsals.append(("백호대살", "bad")); break
+    # 1. 천간 합/충 (인접한 기둥끼리)
+    for i in range(3):
+        pair = "".join(sorted([gans[i], gans[i+1]]))
+        loc = f"{names[i+1]}-{names[i]}"
+        # 합
+        for k, v in CHEONGAN_HAP.items():
+            if "".join(sorted(k)) == pair: log['hap'].append(f"[{loc}] 천간합: {k} → {v}")
+        # 충
+        for k in CHEONGAN_CHUNG:
+            if "".join(sorted(k)) == pair: log['chung'].append(f"[{loc}] 천간충: {k}")
 
-    # 도화살 (지지 기준)
-    dohwa_map = {"亥":"子", "卯":"子", "未":"子", "寅":"卯", "午":"卯", "戌":"卯", "巳":"午", "酉":"午", "丑":"午", "申":"酉", "子":"酉", "辰":"酉"}
-    target_dohwa = dohwa_map.get(day_ji)
-    if target_dohwa and target_dohwa in jis: shinsals.append(("도화살", "neutral"))
+    # 2. 지지 육합/충/원진/형/파 (인접한 기둥)
+    for i in range(3):
+        j1, j2 = jis[i], jis[i+1]
+        pair_set = {j1, j2}
+        loc = f"{names[i+1]}-{names[i]}"
+        
+        # 육합
+        for k, v in JIJI_YUKHAP.items():
+            if {k[0], k[1]} == pair_set: log['hap'].append(f"[{loc}] 지지육합: {k} → {v}")
+        # 충
+        for k in JIJI_CHUNG:
+            if set(k) == pair_set: log['chung'].append(f"[{loc}] 지지충: {k}")
+        # 원진
+        for k in JIJI_WONJIN:
+            if set(k) == pair_set: log['etc'].append(f"[{loc}] 원진살: {k} (불화/원망)")
+        # 형
+        for k in JIJI_HYEONG:
+            if set(k) == pair_set: log['etc'].append(f"[{loc}] 형살: {k} (조정/수술)")
+        # 파
+        for k in JIJI_PA:
+            if set(k) == pair_set: log['etc'].append(f"[{loc}] 파살: {k} (파괴/분리)")
 
-    # 역마살
-    yeokma_map = {"亥":"巳", "卯":"巳", "未":"巳", "寅":"申", "午":"申", "戌":"申", "巳":"亥", "酉":"亥", "丑":"亥", "申":"寅", "子":"寅", "辰":"寅"}
-    target_yeokma = yeokma_map.get(day_ji)
-    if target_yeokma and target_yeokma in jis: shinsals.append(("역마살", "neutral"))
-    
-    # 화개살
-    hwagae_map = {"亥":"未", "卯":"未", "未":"未", "寅":"戌", "午":"戌", "戌":"戌", "巳":"丑", "酉":"丑", "丑":"丑", "申":"辰", "子":"辰", "辰":"辰"}
-    target_hwagae = hwagae_map.get(day_ji)
-    if target_hwagae and target_hwagae in jis: shinsals.append(("화개살", "neutral"))
+    # 3. 삼합/방합 (전체 지지 대상)
+    ji_str = "".join(jis)
+    for k, v in JIJI_SAMHAP.items():
+        cnt = sum([1 for char in k if char in ji_str])
+        if cnt == 3: log['hap'].append(f"[국] 지지삼합: {k} → {v} (강력한 합)")
+        elif cnt == 2: log['hap'].append(f"[반합] 지지반합: {k} 중 2자 ({v} 기운)")
+        
+    for k, v in JIJI_BANGHAP.items():
+        cnt = sum([1 for char in k if char in ji_str])
+        if cnt == 3: log['hap'].append(f"[국] 지지방합: {k} → {v} (가족/동료의 합)")
 
-    # 현침살 (뾰족한 글자)
-    sharp_chars = ['甲', '申', '卯', '午', '辛']
-    sharp_cnt = 0
-    for p in pillars:
-        if p['g'] in sharp_chars: sharp_cnt += 1
-        if p['j'] in sharp_chars: sharp_cnt += 1
-    if sharp_cnt >= 2: shinsals.append(("현침살", "neutral"))
-
-    return list(set(shinsals)) # 중복제거
+    return log
 
 # --- 4. UI 실행 ---
 with st.sidebar:
@@ -171,17 +217,19 @@ if btn:
         m_g, m_j = m_gj[0], m_gj[1]
         d_g, d_j = d_gj[0], d_gj[1]
         
-        t_j = calculate_time_ji(t_time.hour, t_time.minute, loc)
+        t_j, s_min = calculate_time_ji(t_time.hour, t_time.minute, loc)
         t_g = get_time_pillar_gan(d_g, t_j)
         day_master = d_g
         
-        st.header(f"📜 {name}님의 사주 분석")
-        st.caption(f"{d.year}년 {d.month}월 {d.day}일 ({gender})")
+        st.header(f"📜 {name}님의 정밀 사주풀이")
+        st.caption(f"양력 {d.year}.{d.month}.{d.day} / 진태양시 {int(s_min//60):02d}:{int(s_min%60):02d}")
 
-        # [1] 메인 사주 원국 (카드 형태)
+        # --- [1] 한눈에 보는 도표 (메인 카드) ---
         pillars = [
-            {"name":"시주", "g":t_g, "j":t_j}, {"name":"일주", "g":d_g, "j":d_j},
-            {"name":"월주", "g":m_g, "j":m_j}, {"name":"연주", "g":y_g, "j":y_j}
+            {"name":"시주", "g":t_g, "j":t_j, "role":"말년/자식"}, 
+            {"name":"일주", "g":d_g, "j":d_j, "role":"본인/배우자"},
+            {"name":"월주", "g":m_g, "j":m_j, "role":"사회/부모"}, 
+            {"name":"연주", "g":y_g, "j":y_j, "role":"초년/조상"}
         ]
         
         cols = st.columns(4)
@@ -189,83 +237,63 @@ if btn:
             p = pillars[i]
             ten_g = "일간" if i==1 else get_sibseong(day_master, p['g'])
             ten_j = get_sibseong(day_master, p['j'])
-            c_g = OHAENG_MAP[p['g']]
-            c_j = OHAENG_MAP[p['j']]
+            unseong = get_unseong(day_master, p['j'])
+            shinsal = get_shinsal(d_j, p['j'])
+            jijang = JIJANGGAN.get(p['j'], "")
             
-            col.markdown(f"""
-            <div class="pillar-card">
-                <div class="card-header">{p['name']}</div>
-                <div class="ten-god-label">{ten_g}</div>
-                <div class="hanja {c_g}">{p['g']}</div>
-                <div class="hanja {c_j}">{p['j']}</div>
-                <div class="ten-god-label">{ten_j}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            with col:
+                st.markdown(f"""
+                <div class="pillar-card">
+                    <div class="card-header">{p['name']} ({p['role']})</div>
+                    <div class="ten-god-top">{ten_g}</div>
+                    <div class="hanja-area">
+                        <div class="hanja {OHAENG_MAP[p['g']]}">{p['g']}</div>
+                        <div class="hanja {OHAENG_MAP[p['j']]}">{p['j']}</div>
+                    </div>
+                    <div class="ten-god-bottom">{ten_j}</div>
+                    <div class="bottom-info">
+                        <div class="jijanggan">{jijang}</div>
+                        <span class="unseong">{unseong}</span>
+                        <span class="shinsal">{shinsal if shinsal else "-"}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.write("") 
+        
+        # --- [2] 상세 분석 (탭 메뉴) ---
+        st.subheader("🔍 상세 분석 (클릭해서 확인)")
+        tab1, tab2, tab3, tab4 = st.tabs(["🏛️ 궁성(자리)", "💞 합(Combination)", "⚡ 충(Clash)", "🌫️ 기타/공망"])
+        
+        log = analyze_interactions(pillars)
+        gm = get_gongmang(d_g, d_j)
+        
+        with tab1:
+            st.info(f"**일주 ({d_g}{d_j})**: 나의 본원(Identity)입니다. {OHAENG_KR[OHAENG_MAP[d_g]]}의 성향을 띠며, 12운성 '{get_unseong(day_master, d_j)}'지에 앉아 있습니다.")
+            st.write(f"**월주 ({m_g}{m_j})**: 내가 살아가는 사회적 환경입니다. 격국과 직업적성을 볼 때 가장 중요합니다.")
             
-        # [2] 신살과 길성 (태그 형태)
-        st.subheader("⭐ 신살과 길성")
-        shinsal_list = get_comprehensive_shinsal(d_g, d_j, pillars)
-        
-        if shinsal_list:
-            html_tags = ""
-            for name, type_ in shinsal_list:
-                cls = "tag-good" if type_ == "good" else "tag-bad" if type_ == "bad" else "tag-neutral"
-                html_tags += f'<span class="shinsal-tag {cls}">{name}</span>'
-            st.markdown(f'<div class="shinsal-box">{html_tags}</div>', unsafe_allow_html=True)
-        else:
-            st.info("특이한 신살이 발견되지 않았습니다. 평안한 사주입니다.")
-
-        # [3] 오행과 십성 분석 (그래프 형태)
-        st.subheader("📊 오행과 십성 분석")
-        
-        c1, c2 = st.columns(2)
-        
-        # 오행 데이터 계산
-        all_chars = [p['g'] for p in pillars] + [p['j'] for p in pillars]
-        oh_cnt = {"목":0, "화":0, "토":0, "금":0, "수":0}
-        for c in all_chars: oh_cnt[OHAENG_KR[OHAENG_MAP[c]]] += 1
-        
-        # 십성 데이터 계산
-        ten_cnt = {"비겁":0, "식상":0, "재성":0, "관성":0, "인성":0}
-        sib_map = {"비견":"비겁", "겁재":"비겁", "식신":"식상", "상관":"식상", "편재":"재성", "정재":"재성", "편관":"관성", "정관":"관성", "편인":"인성", "정인":"인성"}
-        for c in all_chars:
-            if c == d_g: ten_cnt["비겁"] += 1 # 일간은 비겁
+        with tab2:
+            if log['hap']:
+                for item in log['hap']:
+                    st.markdown(f"<div class='interaction-box box-hap'><b>{item}</b><br>두 기운이 만나 새로운 에너지를 만들거나 묶이는 관계입니다.</div>", unsafe_allow_html=True)
             else:
-                s = get_sibseong(day_master, c)
-                if s: ten_cnt[sib_map[s]] += 1
-
-        with c1:
-            st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
-            st.markdown("**오행 분포 (Five Elements)**")
-            for oh, color_cls in [("목", "bg-wood"), ("화", "bg-fire"), ("토", "bg-earth"), ("금", "bg-metal"), ("수", "bg-water")]:
-                cnt = oh_cnt[oh]
-                pct = (cnt / 8) * 100
-                st.markdown(f"""
-                <div class="stat-row">
-                    <div class="stat-label">{oh}</div>
-                    <div class="stat-bar-bg"><div class="stat-bar-fill {color_cls}" style="width: {pct}%;"></div></div>
-                    <div class="stat-value">{int(pct)}%</div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with c2:
-            st.markdown('<div class="analysis-card">', unsafe_allow_html=True)
-            st.markdown("**십성 분포 (Ten Gods)**")
-            for ten in ["비겁", "식상", "재성", "관성", "인성"]:
-                cnt = ten_cnt[ten]
-                pct = (cnt / 8) * 100
-                st.markdown(f"""
-                <div class="stat-row">
-                    <div class="stat-label">{ten}</div>
-                    <div class="stat-bar-bg"><div class="stat-bar-fill" style="width: {pct}%; background-color: #868e96;"></div></div>
-                    <div class="stat-value">{cnt}개</div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # 분석 멘트
-        st.success(f"당신의 사주는 **{max(oh_cnt, key=oh_cnt.get)}** 기운이 가장 강하며, 사회적으로는 **{max(ten_cnt, key=ten_cnt.get)}**의 성향(능력/관계)을 주로 활용하게 됩니다.")
+                st.write("원국 내에 뚜렷한 합이 없습니다.")
+                
+        with tab3:
+            if log['chung']:
+                for item in log['chung']:
+                    st.markdown(f"<div class='interaction-box box-chung'><b>{item}</b><br>서로 반대되는 기운이 부딪혀 변화나 이동, 갈등을 암시합니다.</div>", unsafe_allow_html=True)
+            else:
+                st.write("원국 내에 뚜렷한 충이 없습니다.")
+                
+        with tab4:
+            st.markdown(f"<div class='interaction-box box-gongmang'><b>🌫️ 공망 (Void): {gm[0]}, {gm[1]}</b><br>채워지지 않는 빈 자리입니다. 해당 글자가 사주에 있으면 그 역할이 반감되거나 헛수고가 되기 쉽습니다.</div>", unsafe_allow_html=True)
+            
+            if log['etc']:
+                for item in log['etc']:
+                    st.markdown(f"<div class='interaction-box box-wonjin'><b>{item}</b></div>", unsafe_allow_html=True)
+            elif not log['etc']:
+                st.write("원진, 형, 파살 등 기타 신살이 없습니다.")
 
     else:
         st.error("데이터 조회 실패")
