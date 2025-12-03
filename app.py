@@ -5,7 +5,7 @@ import pandas as pd
 import altair as alt
 import math
 
-# --- [1] 설정 및 스타일 (PDF 스타일 유지) ---
+# --- [1] 설정 및 스타일 ---
 st.set_page_config(page_title="루나 만세력 Pro", page_icon="🌙", layout="wide")
 
 st.markdown("""
@@ -39,7 +39,6 @@ st.markdown("""
     .ss-tbl th { background: #f8f9fa; font-size: 12px; padding: 10px; border-bottom: 1px solid #f1f3f5; color:#555;}
     .ss-tbl td { font-size: 12px; padding: 12px; border-bottom: 1px solid #f1f3f5; text-align: center; font-weight: bold; color: #333; }
     
-    /* 상세 분석 스타일 */
     .mini-chart { display: flex; justify-content: center; margin-bottom: 20px; border-bottom: 1px dashed #eee; padding-bottom: 20px; }
     .mc-col { text-align: center; width: 60px; margin: 0 5px; }
     .mc-char { font-family: 'Noto Serif KR'; font-size: 24px; font-weight: bold; }
@@ -47,6 +46,11 @@ st.markdown("""
     .result-box { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 15px; text-align: center; font-weight: bold; color: #1565c0; margin: 15px 0; }
     .no-result { background: #f8f9fa; border: 1px solid #dee2e6; color: #adb5bd; }
     .desc-text { font-size: 13px; color: #555; line-height: 1.6; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+    
+    .fortune-wrap { display: flex; justify-content: space-between; margin-top: 10px; padding-top:10px; border-top:1px dashed #eee;}
+    .fortune-cell { background: #f8f9fa; border-radius: 8px; padding: 10px 5px; width: 24%; text-align: center; }
+    .ft-title { font-size: 12px; font-weight: 800; color: #343a40; display: block; }
+    .ft-desc { font-size: 10px; color: #aaa; margin-top:2px; display:block;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -127,7 +131,7 @@ def get_daewoon_full(y_g, m_g, m_j, gender):
     is_yang = (GAN.index(y_g) % 2 == 0)
     is_man = (gender == "남자")
     fwd = (is_yang and is_man) or (not is_yang and not is_man)
-    dw_num = 6
+    dw_num = 6 # 예시
     lst = []
     s_g, s_j = GAN.index(m_g), JI.index(m_j)
     for i in range(1, 9):
@@ -187,140 +191,111 @@ def generate_pentagon_svg(cnt_data):
     svg += '</svg>'
     return svg
 
-# --- [4] 핵심: 상세 분석 알고리즘 (버그 수정 및 정밀 로직) ---
-def analyze_relationships_v2(pillars, day_gan):
-    # pillars: 0=시, 1=일, 2=월, 3=연
-    # 천간 리스트, 지지 리스트
-    gans = [p['g'] for p in pillars] # 시, 일, 월, 연
+# --- [4] 핵심: 상세 분석 알고리즘 (방합 계산 수정됨) ---
+def analyze_relationships_v2(pillars, day_master):
+    gans = [p['g'] for p in pillars]
     jis = [p['j'] for p in pillars]
-    
-    # 지지 고유 인덱스 (계산용)
     ji_indices = [JI.index(j) for j in jis]
     gan_indices = [GAN.index(g) for g in gans]
-    
-    res = {}
     p_names = ["시주", "일주", "월주", "연주"]
+    res = {}
 
-    # 1. 궁성: 기본 설명
     res["궁성"] = f"연주({gans[3]}{jis[3]}): 조상/초년, 월주({gans[2]}{jis[2]}): 부모/청년, 일주({gans[1]}{jis[1]}): 본인/중년, 시주({gans[0]}{jis[0]}): 자식/말년"
 
-    # 2. 천간합 (0-5, 1-6...) -> 인덱스 차이 5
+    # 천간합
     found_hap = []
     for i in range(4):
         for j in range(i+1, 4):
             if abs(gan_indices[i] - gan_indices[j]) == 5:
-                found_hap.append(f"{p_names[i]}({gans[i]}) - {p_names[j]}({gans[j]}) 합")
+                found_hap.append(f"{p_names[i]}-{p_names[j]} 합")
     res["천간합"] = ", ".join(found_hap) if found_hap else "해당사항 없음"
 
-    # 3. 지지육합 (자축, 인해, 묘술, 진유, 사신, 오미)
-    # 인덱스 합: 자(0)+축(1)=1, 인(2)+해(11)=13... 규칙보다는 매핑이 빠름
+    # 지지육합
     yukhap_map = {0:1, 1:0, 2:11, 11:2, 3:10, 10:3, 4:9, 9:4, 5:8, 8:5, 6:7, 7:6}
     found_yuk = []
     for i in range(4):
         for j in range(i+1, 4):
             if yukhap_map[ji_indices[i]] == ji_indices[j]:
-                found_yuk.append(f"{p_names[i]}({jis[i]}) - {p_names[j]}({jis[j]}) 육합")
+                found_yuk.append(f"{p_names[i]}-{p_names[j]} 육합")
     res["지지육합"] = ", ".join(found_yuk) if found_yuk else "해당사항 없음"
 
-    # 4. 천간충 (갑경, 을신, 병임, 정계 / 인덱스 차이 6)
+    # 천간충
     found_g_chung = []
     for i in range(4):
         for j in range(i+1, 4):
             if abs(gan_indices[i] - gan_indices[j]) == 6:
-                found_g_chung.append(f"{p_names[i]}({gans[i]}) - {p_names[j]}({gans[j]}) 충")
+                found_g_chung.append(f"{p_names[i]}-{p_names[j]} 충")
     res["천간충"] = ", ".join(found_g_chung) if found_g_chung else "해당사항 없음"
 
-    # 5. 지지충 (자오, 축미... / 인덱스 차이 6)
+    # 지지충
     found_j_chung = []
     for i in range(4):
         for j in range(i+1, 4):
             if abs(ji_indices[i] - ji_indices[j]) == 6:
-                found_j_chung.append(f"{p_names[i]}({jis[i]}) - {p_names[j]}({jis[j]}) 충")
+                found_j_chung.append(f"{p_names[i]}-{p_names[j]} 충")
     res["지지충"] = ", ".join(found_j_chung) if found_j_chung else "해당사항 없음"
 
-    # 6. 삼합 (인오술, 사유축, 신자진, 해묘미)
+    # 삼합
     samhap_groups = [
-        {"name":"화국", "set":{2,6,10}}, # 인오술
-        {"name":"금국", "set":{5,9,1}},  # 사유축
-        {"name":"수국", "set":{8,0,4}},  # 신자진
-        {"name":"목국", "set":{11,3,7}}  # 해묘미
+        {"name":"인오술 화국", "set":{2,6,10}}, {"name":"사유축 금국", "set":{5,9,1}},
+        {"name":"신자진 수국", "set":{8,0,4}},  {"name":"해묘미 목국", "set":{11,3,7}}
     ]
     my_jis = set(ji_indices)
     found_sam = []
     for group in samhap_groups:
-        if group["set"].issubset(my_jis):
-            found_sam.append(f"지지 {group['name']} 삼합 성립")
-        # 반합 (왕지 포함) - 왕지: 자(0), 오(6), 묘(3), 유(9)
-        else:
-            wang = list(group["set"] & {0,6,3,9})
-            if wang and len(group["set"] & my_jis) >= 2:
-                found_sam.append(f"{group['name']} 반합 (세력 있음)")
+        match_cnt = len(group["set"] & my_jis)
+        if match_cnt == 3: found_sam.append(f"{group['name']} (전합)")
+        elif match_cnt == 2: found_sam.append(f"{group['name']} (반합)")
     res["지지삼합"] = ", ".join(found_sam) if found_sam else "해당사항 없음"
 
-    # 7. 방합 (인묘진, 사오미, 신유술, 해자축)
+    # [수정된] 방합 (2글자 이상이면 반합 인정)
+    # 인묘진(2,3,4), 사오미(5,6,7), 신유술(8,9,10), 해자축(11,0,1)
     bang_groups = [
-        {"name":"목방(봄)", "set":{2,3,4}},
-        {"name":"화방(여름)", "set":{5,6,7}},
-        {"name":"금방(가을)", "set":{8,9,10}},
-        {"name":"수방(겨울)", "set":{11,0,1}}
+        {"name":"인묘진 목국(봄)", "set":{2,3,4}},
+        {"name":"사오미 화국(여름)", "set":{5,6,7}},
+        {"name":"신유술 금국(가을)", "set":{8,9,10}},
+        {"name":"해자축 수국(겨울)", "set":{11,0,1}}
     ]
     found_bang = []
     for group in bang_groups:
-        if group["set"].issubset(my_jis):
-            found_bang.append(f"{group['name']} 방합 성립")
+        match_cnt = len(group["set"] & my_jis)
+        if match_cnt == 3: found_bang.append(f"{group['name']} 방합 (완전)")
+        elif match_cnt == 2: found_bang.append(f"{group['name']} 방합 (반합)")
     res["지지방합"] = ", ".join(found_bang) if found_bang else "해당사항 없음"
 
-    # 8. 공망 (일주 기준)
-    # 일간(0~9), 일지(0~11). (일지 - 일간) 공식 사용
-    # 예: 갑(0)자(0) -> 0 -> 술(10)해(11) 공망
-    # 예: 갑(0)술(10) -> 10 -> 신(8)유(9) 공망
-    # 공식: (ji - gan - 2) % 12, 그리고 그 다음 글자
-    il_g = gan_indices[1]
-    il_j = ji_indices[1]
+    # 공망 (일주 기준)
+    il_g = gan_indices[1]; il_j = ji_indices[1]
     gm_start = (il_j - il_g - 2) % 12
-    gm1, gm2 = JI[gm_start], JI[(gm_start+1)%12]
-    
+    gm_chars = [JI[gm_start], JI[(gm_start+1)%12]]
     my_gm = []
-    for k, j_char in enumerate(jis):
-        if k == 1: continue # 일지는 공망 제외
-        if j_char in [gm1, gm2]:
-            my_gm.append(f"{p_names[k]}({j_char}) 공망")
-    
-    res["공망"] = f"공망글자: {gm1}{gm2} / 결과: " + (", ".join(my_gm) if my_gm else "원국 내 공망 없음")
+    for k, char in enumerate(jis):
+        if k!=1 and char in gm_chars: my_gm.append(f"{p_names[k]} 공망")
+    res["공망"] = f"공망글자: {''.join(gm_chars)} / 결과: " + (", ".join(my_gm) if my_gm else "없음")
 
-    # 9. 원진 (자미, 축오, 인유, 묘신, 진해, 사술)
+    # 원진
     wonjin_pairs = [{0,7}, {1,6}, {2,9}, {3,8}, {4,11}, {5,10}]
     found_won = []
     for i in range(4):
         for j in range(i+1, 4):
-            pair = {ji_indices[i], ji_indices[j]}
-            if pair in wonjin_pairs:
-                found_won.append(f"{p_names[i]}({jis[i]}) - {p_names[j]}({jis[j]}) 원진")
+            if {ji_indices[i], ji_indices[j]} in wonjin_pairs:
+                found_won.append(f"{p_names[i]}-{p_names[j]} 원진")
     res["원진"] = ", ".join(found_won) if found_won else "해당사항 없음"
 
-    # 10. 형 (삼형, 자형)
+    # 형
     found_hyeong = []
-    # 인사신
-    if {2,5,8}.issubset(my_jis): found_hyeong.append("인사신 삼형살")
-    # 축술미
-    if {1,10,7}.issubset(my_jis): found_hyeong.append("축술미 삼형살")
-    # 자형 (진진, 오오, 유유, 해해)
-    for idx in [4,6,9,11]:
-        if ji_indices.count(idx) >= 2:
-            found_hyeong.append(f"{JI[idx]}{JI[idx]} 자형")
-    # 자묘형
-    if 0 in my_jis and 3 in my_jis: found_hyeong.append("자묘 무례지형")
-    
+    if {2,5,8}.issubset(my_jis): found_hyeong.append("인사신 삼형")
+    if {1,10,7}.issubset(my_jis): found_hyeong.append("축술미 삼형")
+    if 0 in my_jis and 3 in my_jis: found_hyeong.append("자묘 형")
+    for x in [4,6,9,11]:
+        if ji_indices.count(x)>=2: found_hyeong.append(f"{JI[x]}{JI[x]} 자형")
     res["형"] = ", ".join(found_hyeong) if found_hyeong else "해당사항 없음"
 
-    # 11. 파 (자유, 축진, 인해, 묘오, 사신, 술미)
+    # 파
     pa_pairs = [{0,9}, {1,4}, {2,11}, {3,6}, {5,8}, {10,7}]
     found_pa = []
     for i in range(4):
         for j in range(i+1, 4):
-            pair = {ji_indices[i], ji_indices[j]}
-            if pair in pa_pairs:
-                found_pa.append(f"{p_names[i]}({jis[i]}) - {p_names[j]}({jis[j]}) 파")
+            if {ji_indices[i], ji_indices[j]} in pa_pairs: found_pa.append(f"{p_names[i]}-{p_names[j]} 파")
     res["파"] = ", ".join(found_pa) if found_pa else "해당사항 없음"
 
     return res
@@ -345,19 +320,19 @@ with st.sidebar:
     name = st.text_input("이름", "사용자")
     gender = st.radio("성별", ["남자", "여자"])
     
-    if 'dob_v3' not in st.session_state:
-        st.session_state.dob_v3 = datetime.date(1990, 5, 5)
-    d_input = st.date_input("생년월일", st.session_state.dob_v3, min_value=datetime.date(1900,1,1))
-    st.session_state.dob_v3 = d_input
+    if 'dob_v4' not in st.session_state:
+        st.session_state.dob_v4 = datetime.date(1990, 5, 5)
+    d_input = st.date_input("생년월일", st.session_state.dob_v4, min_value=datetime.date(1900,1,1))
+    st.session_state.dob_v4 = d_input
     
     t_time = st.time_input("태어난 시간", datetime.time(7, 0))
     loc = st.selectbox("출생 지역", list(LOCATIONS.keys()))
     
     if st.button("결과 확인", type="primary"):
-        st.session_state.run_v3 = True
+        st.session_state.run_v4 = True
 
-if 'run_v3' in st.session_state and st.session_state.run_v3:
-    d = st.session_state.dob_v3
+if 'run_v4' in st.session_state and st.session_state.run_v4:
+    d = st.session_state.dob_v4
     
     try:
         conn = sqlite3.connect("saju.db")
@@ -431,10 +406,19 @@ if 'run_v3' in st.session_state and st.session_state.run_v3:
         tbl += "</tbody></table>"
         st.markdown(tbl, unsafe_allow_html=True)
         
-        # [NEW] 사주 풀이 자세히 보기
-        st.markdown('<div class="sec-head">사주 풀이 자세히 보기</div>', unsafe_allow_html=True)
+        # [2-1] 사주 풀이 자세히 보기 (근묘화실)
+        st.markdown("""
+        <div style="font-size:13px; font-weight:bold; color:#333; margin-top:20px;">사주 풀이 자세히 보기</div>
+        <div class="fortune-wrap">
+            <div class="fortune-cell"><span class="ft-title">말년운</span><span class="ft-desc">자녀, 결실</span></div>
+            <div class="fortune-cell"><span class="ft-title">중년운</span><span class="ft-desc">자아, 정체성</span></div>
+            <div class="fortune-cell"><span class="ft-title">청년운</span><span class="ft-desc">부모, 사회</span></div>
+            <div class="fortune-cell"><span class="ft-title">초년운</span><span class="ft-desc">조상, 유년</span></div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # 미니 차트
+        # [NEW] 상세 분석
+        st.markdown('<div class="sec-head">상세 분석</div>', unsafe_allow_html=True)
         st.markdown('<div class="detail-container"><div class="mini-chart">', unsafe_allow_html=True)
         cols = st.columns(4)
         for i, p in enumerate(reversed(pillars)):
@@ -452,11 +436,9 @@ if 'run_v3' in st.session_state and st.session_state.run_v3:
                 """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
-        # 분석 탭
         tabs = ["궁성", "천간합", "지지육합", "지지삼합", "지지방합", "천간충", "지지충", "공망", "형", "파", "원진"]
         sel = st.radio("분석 선택", tabs, horizontal=True, label_visibility="collapsed")
         
-        # 결과 계산
         an_res = analyze_relationships_v2(pillars, day_master)
         val = an_res.get(sel, "")
         desc = DESC_MAP.get(sel, "")
@@ -464,6 +446,7 @@ if 'run_v3' in st.session_state and st.session_state.run_v3:
         st.markdown(f"""
         <div class="result-box {'no-result' if '해당사항' in val else ''}">{val}</div>
         <div class="desc-text"><b>{sel}이란?</b><br>{desc}<br><br><span style='color:#888; font-size:11px;'>* 합과 충은 작용 위치와 세력에 따라 길흉이 달라지니 단편적으로 판단하지 마세요.</span></div>
+        </div>
         """, unsafe_allow_html=True)
 
         # [3] 신살표
