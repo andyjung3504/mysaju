@@ -100,8 +100,6 @@ JIJANGGAN = {
     "子":"壬 癸", "丑":"癸 辛 己", "寅":"戊 丙 甲", "卯":"甲 乙", "辰":"乙 癸 戊", "巳":"戊 庚 丙",
     "午":"丙 己 丁", "未":"丁 乙 己", "申":"戊 壬 庚", "酉":"庚 辛", "戌":"辛 丁 戊", "亥":"戊 甲 壬"
 }
-
-# [수정 완료] 오타가 있었던 부분입니다.
 UNSEONG = {
     "甲":["목욕","관대","건록","제왕","쇠","병","사","묘","절","태","양","장생"],
     "丙":["태","양","장생","목욕","관대","건록","제왕","쇠","병","사","묘","절"],
@@ -150,7 +148,6 @@ def get_sibseong(day_gan, target):
     if diff == 4: return "편인" if same else "정인"
 
 def get_shinsal(day_ji, target_ji):
-    # 포스텔러 식 매핑
     shin_map = {
         "亥卯未": {"子":"년살","丑":"월살","寅":"망신","卯":"장성","辰":"반안","巳":"역마","午":"육해","未":"화개","申":"겁살","酉":"재살","戌":"천살","亥":"지살"},
         "寅午戌": {"卯":"년살","辰":"월살","巳":"망신","午":"장성","未":"반안","申":"역마","酉":"육해","戌":"화개","亥":"겁살","子":"재살","丑":"천살","寅":"지살"},
@@ -226,9 +223,9 @@ if 'run' in st.session_state and st.session_state.run:
             {"n":"월주", "g":m_g, "j":m_j}, {"n":"연주", "g":y_g, "j":y_j}
         ]
         
-        pd = []
+        pd_data = []
         for p in pillars:
-            pd.append({
+            pd_data.append({
                 "g_ten": "일간" if p['n']=="일주" else get_sibseong(day_master, p['g']),
                 "j_ten": get_sibseong(day_master, p['j']),
                 "g_col": "c-" + OHAENG_MAP[p['g']],
@@ -250,52 +247,52 @@ if 'run' in st.session_state and st.session_state.run:
                 <tbody>
                     <tr>
                         <td class="label-cell">천간</td>
-                        <td class=""><div class="txt-gan {pd[0]['g_col']}">{pd[0]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd[1]['g_col']}">{pd[1]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd[2]['g_col']}">{pd[2]['g']}</div></td>
-                        <td class="border-left"><div class="txt-gan {pd[3]['g_col']}">{pd[3]['g']}</div></td>
+                        <td class=""><div class="txt-gan {pd_data[0]['g_col']}">{pd_data[0]['g']}</div></td>
+                        <td class="border-left"><div class="txt-gan {pd_data[1]['g_col']}">{pd_data[1]['g']}</div></td>
+                        <td class="border-left"><div class="txt-gan {pd_data[2]['g_col']}">{pd_data[2]['g']}</div></td>
+                        <td class="border-left"><div class="txt-gan {pd_data[3]['g_col']}">{pd_data[3]['g']}</div></td>
                     </tr>
                     <tr>
                         <td class="label-cell">십성</td>
-                        <td><span class="badge">{pd[0]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[1]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[2]['g_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[3]['g_ten']}</span></td>
+                        <td><span class="badge">{pd_data[0]['g_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[1]['g_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[2]['g_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[3]['g_ten']}</span></td>
                     </tr>
                     <tr>
                         <td class="label-cell">지지</td>
-                        <td><div class="txt-ji {pd[0]['j_col']}">{pd[0]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd[1]['j_col']}">{pd[1]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd[2]['j_col']}">{pd[2]['j']}</div></td>
-                        <td class="border-left"><div class="txt-ji {pd[3]['j_col']}">{pd[3]['j']}</div></td>
+                        <td><div class="txt-ji {pd_data[0]['j_col']}">{pd_data[0]['j']}</div></td>
+                        <td class="border-left"><div class="txt-ji {pd_data[1]['j_col']}">{pd_data[1]['j']}</div></td>
+                        <td class="border-left"><div class="txt-ji {pd_data[2]['j_col']}">{pd_data[2]['j']}</div></td>
+                        <td class="border-left"><div class="txt-ji {pd_data[3]['j_col']}">{pd_data[3]['j']}</div></td>
                     </tr>
                     <tr>
                         <td class="label-cell">십성</td>
-                        <td><span class="badge">{pd[0]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[1]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[2]['j_ten']}</span></td>
-                        <td class="border-left"><span class="badge">{pd[3]['j_ten']}</span></td>
+                        <td><span class="badge">{pd_data[0]['j_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[1]['j_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[2]['j_ten']}</span></td>
+                        <td class="border-left"><span class="badge">{pd_data[3]['j_ten']}</span></td>
                     </tr>
                     <tr>
                         <td class="label-cell">지장간</td>
-                        <td style="font-size:11px; color:#aaa;">{pd[0]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd[1]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd[2]['jj']}</td>
-                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd[3]['jj']}</td>
+                        <td style="font-size:11px; color:#aaa;">{pd_data[0]['jj']}</td>
+                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[1]['jj']}</td>
+                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[2]['jj']}</td>
+                        <td class="border-left" style="font-size:11px; color:#aaa;">{pd_data[3]['jj']}</td>
                     </tr>
                     <tr>
                         <td class="label-cell">12운성</td>
-                        <td style="font-weight:bold; color:#339af0; font-size:13px;">{pd[0]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd[1]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd[2]['un']}</td>
-                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd[3]['un']}</td>
+                        <td style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[0]['un']}</td>
+                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[1]['un']}</td>
+                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[2]['un']}</td>
+                        <td class="border-left" style="font-weight:bold; color:#339af0; font-size:13px;">{pd_data[3]['un']}</td>
                     </tr>
                     <tr>
                         <td class="label-cell">12신살</td>
-                        <td style="color:#fa5252; font-size:12px;">{pd[0]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd[1]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd[2]['ss']}</td>
-                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd[3]['ss']}</td>
+                        <td style="color:#fa5252; font-size:12px;">{pd_data[0]['ss']}</td>
+                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[1]['ss']}</td>
+                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[2]['ss']}</td>
+                        <td class="border-left" style="color:#fa5252; font-size:12px;">{pd_data[3]['ss']}</td>
                     </tr>
                     <tr class="fortune-row">
                         <td class="label-cell">운세</td>
@@ -326,12 +323,14 @@ if 'run' in st.session_state and st.session_state.run:
         </div>
         """, unsafe_allow_html=True)
 
-        # [3] 그래프
+        # [3] 그래프 (오행) - [수정] list() 변환으로 AttributeError 방지
         c1, c2 = st.columns(2)
         all_char = [p['g'] for p in pillars] + [p['j'] for p in pillars]
         cnt = {"목":0,"화":0,"토":0,"금":0,"수":0}
         for c in all_char: cnt[KR_OH[OHAENG_MAP[c]]] += 1
-        df_oh = pd.DataFrame({"category": cnt.keys(), "value": cnt.values()})
+        
+        # [중요] list() 로 감싸서 변환
+        df_oh = pd.DataFrame({"category": list(cnt.keys()), "value": list(cnt.values())})
         
         base = alt.Chart(df_oh).encode(theta=alt.Theta("value", stack=True))
         pie = base.mark_arc(outerRadius=80, innerRadius=50).encode(
@@ -351,14 +350,18 @@ if 'run' in st.session_state and st.session_state.run:
             st.write("용신: 금(억부용신) / 희신: 수")
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # [4] 대운
+        # [4] 대운 (스크롤 방식)
         dw_list, dw_num = get_daewoon_full(y_g, m_g, m_j, gender)
+        
         st.subheader(f"🌊 대운 (대운수: {dw_num})")
+        
+        # 대운 HTML 생성
         dw_html_content = ""
         for d in dw_list:
             g_ten = get_sibseong(day_master, d['gan'])
             j_ten = get_sibseong(day_master, d['ji'])
             un = UNSEONG[day_master][JI.index(d['ji'])]
+            
             dw_html_content += f"""
             <div class="dw-block">
                 <div class="dw-age">{d['age']}</div>
@@ -368,7 +371,14 @@ if 'run' in st.session_state and st.session_state.run:
                 <div style="font-size:11px; color:#339af0; margin-top:4px;">{un}</div>
             </div>
             """
-        st.markdown(f'<div class="card-box"><div class="daewoon-scroll">{dw_html_content}</div></div>', unsafe_allow_html=True)
+            
+        st.markdown(f"""
+        <div class="card-box">
+            <div class="daewoon-scroll">
+                {dw_html_content}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     else:
         st.error("데이터가 없습니다.")
